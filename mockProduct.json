@@ -1,0 +1,55 @@
+const mockProducts: Catalog[] = [
+    {
+      id: 'catalog-1',
+      localizeInfos: { title: 'Featured Products' },
+      catalogProducts: {
+        items: Array.from({ length: 25 }, (_, i) => ({
+          id: `product-${i + 1}`,
+          localizeInfos: { title: `Product ${i + 1}` },
+          price: parseFloat((Math.random() * 100 + 10).toFixed(2)),
+          attributeValues: {
+            p_description: {
+              value: [
+                {
+                  htmlValue: `<p>This is a description for Product ${i + 1}.</p>`,
+                },
+              ],
+            },
+            p_image: {
+              value: {
+                downloadLink: `/images/products/product-${i + 1}.jpg`,
+              },
+            },
+            p_title: { value: `Product ${i + 1}` },
+          },
+        })),
+      },
+    },
+    {
+      id: 'catalog-2',
+      localizeInfos: { title: 'New Arrivals' },
+      catalogProducts: {
+        items: Array.from({ length: 25 }, (_, i) => ({
+          id: `product-${i + 26}`,
+          localizeInfos: { title: `Product ${i + 26}` },
+          price: parseFloat((Math.random() * 150 + 20).toFixed(2)),
+          attributeValues: {
+            p_description: {
+              value: [
+                {
+                  htmlValue: `<p>This is a description for Product ${i + 26}.</p>`,
+                },
+              ],
+            },
+            p_image: {
+              value: {
+                downloadLink: `/images/products/product-${i + 26}.jpg`,
+              },
+            },
+            p_title: { value: `Product ${i + 26}` },
+          },
+        })),
+      },
+    },
+  ];
+  
