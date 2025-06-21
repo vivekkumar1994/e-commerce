@@ -132,9 +132,9 @@ export default function ProductActions({ stock, product }: ProductActionsProps) 
       <div className="mb-6">
         <label className="block mb-1 font-medium">Quantity:</label>
         <div className="flex items-center gap-2">
-          <button onClick={decrement} disabled={quantity <= 1} className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">−</button>
+          <Button onClick={decrement} disabled={quantity <= 1} className='bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white'>−</Button>
           <input type="number" readOnly value={quantity} className="w-16 text-center border px-2 py-1 rounded" />
-          <button onClick={increment} disabled={quantity >= 100} className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50">+</button>
+          <Button onClick={increment} disabled={quantity >= 100} className='bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white'>+</Button>
         </div>
       </div>
 

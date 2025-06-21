@@ -16,6 +16,7 @@ import useCartStore from '@/stores/cartStore';
 import getUserSession from '@/action/getUserSession';
 import { toast } from 'sonner';
 import { createRazorpayOrder } from '@/action/createRazorpayOrder';
+import Image from 'next/image';
 
 export default function CartPage() {
   const router = useRouter();
@@ -133,7 +134,7 @@ export default function CartPage() {
                 >
                   <div className='flex flex-col sm:flex-row sm:items-center sm:space-x-4'>
                     <div className='flex items-center space-x-4 mb-4 sm:mb-0'>
-                      <img
+                      <Image
                         src={item.image}
                         alt={item.name}
                         className='w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-md'
