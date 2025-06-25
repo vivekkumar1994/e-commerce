@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-import getUserSession from "@/action/getUserSession";
 import { logout } from "@/action/AuthAction";
 import useCartStore from "@/stores/cartStore";
 
@@ -25,6 +24,14 @@ interface IUserSession {
   name: string;
   email: string;
   role: string;
+  avatar?: string;
+}
+
+// Helper to parse cookies
+function getCookieValue(name: string): string | undefined {
+  const cookies = document.cookie.split("; ");
+  const cookie = cookies.find((c) => c.startsWith(`${name}=`));
+  return cookie?.split("=")[1];
 }
 
 export default function Navbar() {
@@ -37,19 +44,18 @@ export default function Navbar() {
   const cartItems = useCartStore((state) => state.cart);
 
   useEffect(() => {
-    async function fetchUser() {
-      try {
-        setIsLoading(true);
-        const userData = await getUserSession();
-        if (userData) setUser(userData as IUserSession);
-      } catch (error) {
-        console.error("Error fetching user:", error);
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
+    const email = getCookieValue("userEmail");
+    const name = getCookieValue("userName");
+    const role = getCookieValue("userRole");
+    const avatar = getCookieValue("avatar");
+
+    console.log(email, name, role, avatar, "cookie values");
+
+    if (email && name && role) {
+      setUser({ email, name, role, avatar });
     }
-    fetchUser();
+
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
@@ -105,16 +111,19 @@ export default function Navbar() {
               />
             </form>
 
-            <Link href="/cart">
-              <Button size="icon" className="relative" variant="ghost">
-                <ShoppingCart className="h-5 w-5 text-gray-600 hover:text-purple-500" />
-                {cartItems.length > 0 && (
-                  <span className="absolute top-[-3px] right-[-3px] px-2 py-1 text-xs font-bold text-white bg-red-500 rounded-full">
-                    {cartItems.length}
-                  </span>
-                )}
-              </Button>
-            </Link>
+            {/* Only show Cart if user is logged in */}
+            {user && (
+              <Link href="/cart">
+                <Button size="icon" className="relative" variant="ghost">
+                  <ShoppingCart className="h-5 w-5 text-gray-600 hover:text-purple-500" />
+                  {cartItems.length > 0 && (
+                    <span className="absolute top-[-3px] right-[-3px] px-2 py-1 text-xs font-bold text-white bg-red-500 rounded-full">
+                      {cartItems.length}
+                    </span>
+                  )}
+                </Button>
+              </Link>
+            )}
 
             {isLoading ? (
               <Avatar className="h-8 w-8">

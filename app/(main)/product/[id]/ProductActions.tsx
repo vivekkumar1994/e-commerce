@@ -1,29 +1,88 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import useCartStore from '@/stores/cartStore';
-import { toast } from 'sonner';
-import { IProduct } from '@/types/product';
-import { Button } from '@/components/ui/button';
-import { ShoppingCart } from 'lucide-react';
-import getUserSession from '@/action/getUserSession';
-import { IUserSession } from '@/types/user';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { ShoppingCart } from 'lucide-react';
+
+import useCartStore from '@/stores/cartStore';
+import { Button } from '@/components/ui/button';
+import { IProduct } from '@/types/product';
 import { createRazorpayOrder } from '@/action/createRazorpayOrder';
 
 interface ProductActionsProps {
-  stock: number;
   product: IProduct;
 }
 
-export default function ProductActions({ stock, product }: ProductActionsProps) {
-  const [quantity, setQuantity] = useState(1);
-  const addToCart = useCartStore((state) => state.addToCart);
+interface IUserEntity {
+  name: string;
+  email: string;
+  avatar?: string;
+  role: string;
+  phone: string;
+  formData?: {
+    marker: string;
+    value: string;
+  }[];
+}
 
-  const [user, setUser] = useState<IUserSession | null>(null);
+// Helper function to read cookies in client-side
+function getCookieValue(name: string): string | undefined {
+  const cookies = document.cookie.split('; ');
+  const cookie = cookies.find((c) => c.startsWith(`${name}=`));
+  return cookie?.split('=')[1];
+}
+
+declare global {
+  interface Window {
+    Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
+  }
+
+  interface RazorpayOptions {
+    key: string;
+    amount: number;
+    currency: string;
+    name: string;
+    description: string;
+    image: string;
+    order_id: string;
+    handler: (res: RazorpayResponse) => void;
+    prefill: {
+      name: string;
+      email: string;
+      contact: string;
+    };
+    theme: {
+      color: string;
+    };
+  }
+
+  interface RazorpayResponse {
+    razorpay_payment_id: string;
+    razorpay_order_id: string;
+    razorpay_signature: string;
+  }
+
+  interface RazorpayInstance {
+    open(): void;
+  }
+}
+
+export default function ProductActions({ product }: ProductActionsProps) {
+  const [quantity, setQuantity] = useState(1);
+  const [user, setUser] = useState<IUserEntity | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  const addToCart = useCartStore((state) => state.addToCart);
+
+  const priceRaw = product.attributeValues?.p_price?.value ?? product.price;
+  const price = typeof priceRaw === 'string' ? parseFloat(priceRaw) : priceRaw ?? 0;
+  const totalPrice = price * quantity;
+  const title = product.attributeValues?.p_title?.value || 'Untitled';
+  const id = Number(product.id);
+  const image = product.attributeValues?.p_image?.value?.downloadLink || '';
 
   useEffect(() => {
     const script = document.createElement('script');
@@ -33,31 +92,20 @@ export default function ProductActions({ stock, product }: ProductActionsProps) 
   }, []);
 
   useEffect(() => {
-    async function fetchUser() {
-      try {
-        const userData = await getUserSession();
-        if (userData) {
-          setUser(userData as IUserSession);
-        } else {
-          router.push('/');
-        }
-      } catch (error) {
-        console.error('Error fetching user:', error);
-        router.push('/');
-      } finally {
-        setIsLoading(false);
-      }
+    const email = getCookieValue('userEmail');
+    const name = getCookieValue('userName');
+    const role = getCookieValue('userRole');
+    const avatar = getCookieValue('avatar');
+    const phone = getCookieValue('userPhone');
+
+    if (email && name && role) {
+      setUser({ name, email, role, avatar, phone: phone || '' });
+    } else {
+      router.push('/');
     }
-    fetchUser();
+
+    setIsLoading(false);
   }, [router]);
-
-  const rawPrice = product.attributeValues?.p_price?.value ?? product.price ?? '0';
-  const price = parseFloat(rawPrice) || 0;
-  const totalPrice = price * quantity;
-
-  const title = product.attributeValues?.p_title?.value || 'Untitled';
-  const id = product.id;
-  const image = product.attributeValues?.p_image?.value?.downloadLink || '';
 
   const handleAddToCart = () => {
     if (!id || !title || !image) {
@@ -78,26 +126,26 @@ export default function ProductActions({ stock, product }: ProductActionsProps) 
     }
 
     try {
-      const data = await createRazorpayOrder({
+      const response = await createRazorpayOrder({
         amount: totalPrice * 100,
         currency: 'INR',
         receipt: `receipt_${Date.now()}`,
         notes: { productId: id, productName: title, quantity },
       });
 
-      if (!data || !data.orderId) throw new Error('Order creation failed');
+      if (!response?.orderId) throw new Error('Order creation failed');
 
-      const options = {
+      const options: RazorpayOptions = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '',
         amount: totalPrice * 100,
         currency: 'INR',
         name: 'Your Store',
         description: title,
         image,
-        order_id: data.orderId,
-        handler(response: any) {
+        order_id: response.orderId,
+        handler: (rzpResponse) => {
           toast.success('Payment Successful!', {
-            description: `Payment ID: ${response.razorpay_payment_id}`,
+            description: `Payment ID: ${rzpResponse.razorpay_payment_id}`,
           });
           router.push('/checkout');
         },
@@ -109,10 +157,10 @@ export default function ProductActions({ stock, product }: ProductActionsProps) 
         theme: { color: '#3399cc' },
       };
 
-      const razorpay = new (window as any).Razorpay(options);
+      const razorpay = new window.Razorpay(options);
       razorpay.open();
     } catch (error) {
-      console.error(error);
+      console.error('Razorpay Error:', error);
       toast.error('Failed to initiate Razorpay');
     }
   };
@@ -132,9 +180,9 @@ export default function ProductActions({ stock, product }: ProductActionsProps) 
       <div className="mb-6">
         <label className="block mb-1 font-medium">Quantity:</label>
         <div className="flex items-center gap-2">
-          <Button onClick={decrement} disabled={quantity <= 1} className='bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white'>−</Button>
+          <Button onClick={decrement} disabled={quantity <= 1} className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white">−</Button>
           <input type="number" readOnly value={quantity} className="w-16 text-center border px-2 py-1 rounded" />
-          <Button onClick={increment} disabled={quantity >= 100} className='bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white'>+</Button>
+          <Button onClick={increment} disabled={quantity >= 100} className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white">+</Button>
         </div>
       </div>
 
@@ -144,10 +192,10 @@ export default function ProductActions({ stock, product }: ProductActionsProps) 
       </div>
 
       <div className="flex gap-4">
-        <Button className="flex-1 py-3 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-purple-600 hover:via-pink-600 hover:to-red-600 text-white font-semibold" onClick={handleAddToCart}>
+        <Button onClick={handleAddToCart} className="flex-1 py-3 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white font-semibold">
           <ShoppingCart className="w-5 h-5 mr-2" /> Add to Cart
         </Button>
-        <Button onClick={handleBuyNow} className="flex-1 py-3 bg-green-600 text-white font-semibold hover:bg-green-700 disabled:opacity-50">
+        <Button onClick={handleBuyNow} className="flex-1 py-3 bg-green-600 text-white font-semibold hover:bg-green-700">
           Buy Now
         </Button>
       </div>

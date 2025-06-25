@@ -1,8 +1,8 @@
-// next.config.js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  typedRoutes: false, // <-- add this line to disable buggy type checks
   images: {
-    domains: ['via.placeholder.com'],
+    domains: ['assets.entrepreneur.com'], // enable external image domains
   },
 };
 

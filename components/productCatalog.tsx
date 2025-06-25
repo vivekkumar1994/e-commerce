@@ -24,6 +24,8 @@ const ProductCatalog = ({
   title: string;
   products: ProductInput[];
 }) => {
+
+  console.log(products,"products hai")
   return (
     <section className="mb-12">
       <h2 className="text-3xl font-bold mb-8 bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 bg-clip-text text-transparent">
@@ -36,12 +38,20 @@ const ProductCatalog = ({
             localizeInfos: {
               title: product.localizeInfos?.title || '',
             },
-            price: product.price,
+          price: product.price,
             attributeValues: {
-              p_description: product.attributeValues?.p_description || {
-                value: [],
+              p_description: {
+                value:
+                  product.attributeValues?.p_description?.value?.map((desc) => ({
+                    htmlValue: desc,
+                  })) ?? [],
               },
-              p_price: product.attributeValues?.p_price || { value: product.price },
+              p_price: {
+                value:
+                  typeof product.attributeValues?.p_price?.value === 'string'
+                    ? parseFloat(product.attributeValues.p_price.value)
+                    : product.attributeValues?.p_price?.value ?? product.price,
+              },
               p_image: product.attributeValues?.p_image || {
                 value: { downloadLink: '' },
               },

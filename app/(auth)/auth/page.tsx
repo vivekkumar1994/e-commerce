@@ -109,8 +109,12 @@ function AuthForm() {
           router.push('/');
         }
       }
-    } catch (error: any) {
-      toast.error(error.message || 'An error occurred.');
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error('An unknown error occurred.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -126,25 +130,27 @@ function AuthForm() {
   };
 
   return (
-    <div className="flex min-h-screen bg-black text-white">
-      <div className="w-full max-w-3xl mx-auto flex flex-col p-6 rounded-xl shadow-2xl bg-zinc-900/90 backdrop-blur-md">
-        <div className="mb-8 cursor-pointer flex items-center" onClick={() => router.push('/')}>
-          <ChevronLeft className="text-gray-300 h-6 w-6 border-2 rounded-full p-1 hover:bg-gray-700 transition duration-300" />
-          <span className="ml-2 text-gray-300 hover:text-white transition duration-300">Back to Home</span>
+    <div className="min-h-screen flex items-center justify-center bg-black text-white px-4">
+      <div className="w-full max-w-md p-6 rounded-xl shadow-2xl bg-zinc-900/90 backdrop-blur-md">
+        <div className="mb-6 flex items-center cursor-pointer" onClick={() => router.push('/')}>
+          <ChevronLeft className="text-gray-300 h-5 w-5 border rounded-full p-1 hover:bg-gray-700 transition duration-300" />
+          <span className="ml-2 text-sm text-gray-300 hover:text-white transition duration-300">
+            Back to Home
+          </span>
         </div>
 
         <div>
-          <h2 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent">
-            {isSignUp ? 'Create Your Account' : 'Welcome Back'}
+          <h2 className="text-3xl font-bold mb-3 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent">
+            {isSignUp ? 'Create Account' : 'Welcome Back'}
           </h2>
-          <p className="text-lg text-gray-400 mb-6">
+          <p className="text-sm text-gray-400 mb-6">
             {isSignUp
-              ? 'Join us today and unlock exclusive deals and features!'
-              : 'Log in to continue your journey.'}
+              ? 'Join us today and unlock exclusive deals!'
+              : 'Login to continue your journey.'}
           </p>
         </div>
 
-        <form className="space-y-6" onSubmit={handleSubmit}>
+        <form className="space-y-5" onSubmit={handleSubmit}>
           {formData.map((field) => (
             <div key={field.marker}>
               <Label htmlFor={field.marker} className="text-base text-gray-300 mb-2 block">
@@ -192,7 +198,7 @@ function AuthForm() {
           )}
 
           <div className="mt-6 flex flex-col items-center">
-            <p className="text-sm text-gray-400 mb-2">Please verify you're not a robot</p>
+            <p className="text-sm text-gray-400 mb-2">Please verify you are not a robot</p>
             <div
               className={`p-3 bg-zinc-800 rounded-md shadow-md border ${
                 captchaVerified ? 'border-purple-500' : 'border-zinc-600'

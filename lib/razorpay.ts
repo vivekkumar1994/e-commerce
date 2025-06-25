@@ -5,6 +5,17 @@ export const razorpay = new Razorpay({
   key_secret: process.env.RazorPaySecretKey as string,
 });
 
+export interface RazorpayOrder {
+  id: string;
+  entity: string;
+  amount: number;
+  currency: string;
+  status: string;
+  receipt: string;
+  created_at: number;
+  [key: string]: string | number | boolean | null | undefined;
+}
+
 export async function createOrder({
   amount,
   currency,
@@ -14,12 +25,22 @@ export async function createOrder({
   amount: number;
   currency: string;
   receipt?: string;
-  notes?: Record<string, any>;
-}) {
-  return razorpay.orders.create({
-    amount, // already rounded by caller
+  notes?: Record<string, string | number | null>;
+}): Promise<RazorpayOrder> {
+  const order = await razorpay.orders.create({
+    amount,
     currency,
     receipt,
     notes,
   });
+
+  return {
+    id: order.id,
+    entity: order.entity,
+    amount: Number(order.amount),
+    currency: order.currency,
+    status: order.status,
+    receipt: order.receipt ?? 'no-receipt', // fallback provided
+    created_at: Number(order.created_at),
+  };
 }

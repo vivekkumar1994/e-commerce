@@ -20,7 +20,7 @@ export async function signUp({
   if (existing) throw new Error('User already exists');
 
   const newUser = new User({ email, password, name });
-  await newUser.save(); // password hashing assumed in pre-save middleware
+  await newUser.save(); // Assumes password hashing in pre-save middleware
 
   const payload = {
     email: newUser.email,
@@ -31,8 +31,9 @@ export async function signUp({
   const accessToken = signAccessToken(payload);
   const refreshToken = signRefreshToken(payload);
 
-  const cookieStore = cookies();
-(await cookieStore).set('accessToken', accessToken, {
+  const cookieStore = await cookies(); // ✅ no await
+
+  cookieStore.set('accessToken', accessToken, {
     httpOnly: true,
     secure: true,
     path: '/',
@@ -40,7 +41,7 @@ export async function signUp({
     sameSite: 'strict',
   });
 
-  (await cookieStore).set('refreshToken', refreshToken, {
+  cookieStore.set('refreshToken', refreshToken, {
     httpOnly: true,
     secure: true,
     path: '/',
@@ -74,9 +75,9 @@ export async function signIn({
   const accessToken = signAccessToken(payload);
   const refreshToken = signRefreshToken(payload);
 
-  const cookieStore = await cookies(); // ✅ await cookies()
+  const cookieStore = await cookies(); // ✅ no await
 
-  // 🟢 Store secure, httpOnly tokens
+  // Secure, HTTP-only tokens
   cookieStore.set('accessToken', accessToken, {
     httpOnly: true,
     secure: true,
@@ -93,7 +94,7 @@ export async function signIn({
     sameSite: 'strict',
   });
 
-  // 🟡 Store non-httpOnly user info (client can access these)
+  // Public user info (not httpOnly)
   cookieStore.set('userEmail', user.email, {
     httpOnly: false,
     secure: true,
@@ -125,7 +126,7 @@ export async function signIn({
     maxAge: 60 * 60 * 24 * 7,
     sameSite: 'lax',
   });
-  
+
   cookieStore.set('id', user.id, {
     httpOnly: false,
     secure: true,
@@ -146,9 +147,9 @@ export async function signIn({
 }
 
 export async function logout() {
-  const cookieStore = cookies();
+  const cookieStore =  await cookies(); // ✅ no await
 
-  (await cookieStore).set('accessToken', '', {
+  cookieStore.set('accessToken', '', {
     httpOnly: true,
     secure: true,
     path: '/',
@@ -156,12 +157,53 @@ export async function logout() {
     sameSite: 'strict',
   });
 
-  (await cookieStore).set('refreshToken', '', {
+  cookieStore.set('refreshToken', '', {
     httpOnly: true,
     secure: true,
     path: '/',
     expires: new Date(0),
     sameSite: 'strict',
+  });
+
+  // Optionally clear public cookies too
+  cookieStore.set('userEmail', '', {
+    httpOnly: false,
+    secure: true,
+    path: '/',
+    expires: new Date(0),
+    sameSite: 'lax',
+  });
+
+  cookieStore.set('avatar', '', {
+    httpOnly: false,
+    secure: true,
+    path: '/',
+    expires: new Date(0),
+    sameSite: 'lax',
+  });
+
+  cookieStore.set('userName', '', {
+    httpOnly: false,
+    secure: true,
+    path: '/',
+    expires: new Date(0),
+    sameSite: 'lax',
+  });
+
+  cookieStore.set('userRole', '', {
+    httpOnly: false,
+    secure: true,
+    path: '/',
+    expires: new Date(0),
+    sameSite: 'lax',
+  });
+
+  cookieStore.set('id', '', {
+    httpOnly: false,
+    secure: true,
+    path: '/',
+    expires: new Date(0),
+    sameSite: 'lax',
   });
 
   return { message: 'Logout successful' };

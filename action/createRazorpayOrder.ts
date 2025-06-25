@@ -1,12 +1,19 @@
 'use server';
 
-import { createOrder } from '@/lib/razorpay';
+import { createOrder, RazorpayOrder } from '@/lib/razorpay';
 
 interface RazorpayOrderParams {
   amount: number;
   currency?: string;
   receipt?: string;
-  notes?: Record<string, any>;
+  notes?: Record<string, string | number | boolean>;
+}
+
+interface RazorpayOrderResult {
+  success: boolean;
+  orderId?: string;
+  order?: RazorpayOrder;
+  message?: string;
 }
 
 export async function createRazorpayOrder({
@@ -14,40 +21,48 @@ export async function createRazorpayOrder({
   currency = 'INR',
   receipt,
   notes,
-}: RazorpayOrderParams) {
+}: RazorpayOrderParams): Promise<RazorpayOrderResult> {
   try {
-    const finalAmount = Math.round(amount); // Razorpay requires amount in paise as integer
+    const finalAmount = Math.round(amount);
 
-    console.log('Creating Razorpay Order:', {
-      amount: finalAmount,
-      currency,
-      receipt,
-      notes,
-    });
+    // ✅ Sanitize notes to match Razorpay's expected type
+    const sanitizedNotes: Record<string, string | number | null> | undefined =
+      notes
+        ? Object.fromEntries(
+            Object.entries(notes).map(([key, value]) => {
+              if (typeof value === 'boolean') {
+                return [key, value ? 'true' : 'false']; // convert boolean to string
+              }
+              return [key, value];
+            })
+          )
+        : undefined;
 
     const order = await createOrder({
       amount: finalAmount,
       currency,
       receipt,
-      notes,
+      notes: sanitizedNotes,
     });
 
-    if (!order?.id) throw new Error('Order not created');
+    if (!order?.id) {
+      throw new Error('Order not created');
+    }
 
     return {
       success: true,
       orderId: order.id,
       order,
     };
-  } catch (error: any) {
-    console.error('[CREATE_RAZORPAY_ORDER_ERROR]', {
-      message: error?.message,
-      full: error,
-    });
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : 'Unknown error occurred';
+
+    console.error('[CREATE_RAZORPAY_ORDER_ERROR]', message, error);
 
     return {
       success: false,
-      message: error?.message || 'Razorpay order creation failed',
+      message,
     };
   }
 }

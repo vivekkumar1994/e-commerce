@@ -1,11 +1,12 @@
 // lib/mockProducts.ts
 
-type Product = {
+// ✅ Updated Product type: price is a number
+export type Product = {
   id: string;
   localizeInfos?: {
     title?: string;
   };
-  price: number;
+  price: number; // updated from string to number
   attributeValues?: {
     p_description?: { value?: { htmlValue?: string }[] };
     p_price?: { value?: number };
@@ -14,7 +15,8 @@ type Product = {
   };
 };
 
-type Catalog = {
+// Catalog type remains unchanged
+export type Catalog = {
   id: string;
   localizeInfos: {
     title: string;
@@ -24,14 +26,15 @@ type Catalog = {
   };
 };
 
+// ✅ Mock data updated: all prices are numbers
 export const mockProducts: Catalog[] = [
   {
-    id: 'catalog-1',
+    id: '1',
     localizeInfos: { title: 'Featured Products' },
     catalogProducts: {
       items: [
         {
-          id: 'product-1',
+          id: '1',
           localizeInfos: { title: 'Smart laptop' },
           price: 155500.99,
           attributeValues: {
@@ -45,7 +48,7 @@ export const mockProducts: Catalog[] = [
           },
         },
         {
-          id: 'product-2',
+          id: '2',
           localizeInfos: { title: 'baby costume' },
           price: 27.99,
           attributeValues: {
@@ -59,7 +62,7 @@ export const mockProducts: Catalog[] = [
           },
         },
         {
-          id: 'product-3',
+          id: '3',
           localizeInfos: { title: 'bedwithstorage' },
           price: 19.99,
           attributeValues: {
@@ -73,7 +76,7 @@ export const mockProducts: Catalog[] = [
           },
         },
         {
-          id: 'product-4',
+          id: '4',
           localizeInfos: { title: 'bumkeshbakshit' },
           price: 19.99,
           attributeValues: {
@@ -87,7 +90,7 @@ export const mockProducts: Catalog[] = [
           },
         },
         {
-          id: 'product-5',
+          id: '5',
           localizeInfos: { title: 'coconutoil' },
           price: 19.99,
           attributeValues: {
@@ -104,12 +107,12 @@ export const mockProducts: Catalog[] = [
     },
   },
   {
-    id: 'catalog-2',
+    id: '2',
     localizeInfos: { title: 'New Arrivals' },
     catalogProducts: {
       items: [
         {
-          id: 'product-6',
+          id: '6',
           localizeInfos: { title: 'Elegant Watch' },
           price: 129.99,
           attributeValues: {
@@ -123,7 +126,7 @@ export const mockProducts: Catalog[] = [
           },
         },
         {
-          id: 'product-7',
+          id: '7',
           localizeInfos: { title: 'meluha' },
           price: 129.99,
           attributeValues: {
@@ -137,7 +140,7 @@ export const mockProducts: Catalog[] = [
           },
         },
         {
-          id: 'product-8',
+          id: '8',
           localizeInfos: { title: 'trending kajal' },
           price: 129.99,
           attributeValues: {
@@ -151,7 +154,7 @@ export const mockProducts: Catalog[] = [
           },
         },
         {
-          id: 'product-9',
+          id: '9',
           localizeInfos: { title: 'greyhumour' },
           price: 129.99,
           attributeValues: {

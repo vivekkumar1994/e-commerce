@@ -7,13 +7,12 @@ import getUserSession from '@/action/getUserSession';
 import { getOrders } from '@/action/order/get-orders';
 import { redirect } from 'next/navigation';
 
-// ✅ Local IUserEntity interface instead of importing from oneentry
+// Match what's returned by getUserSession()
 interface IUserEntity {
-  identifier: string;
-  formData: {
-    value: string;
-    [key: string]: any;
-  }[];
+  email: string;
+  name: string;
+  role: string;
+  avatar?: string;
 }
 
 interface UserStats {
@@ -23,6 +22,16 @@ interface UserStats {
   yearlySpent: number;
   monthlyOrders: number;
   monthlySpent: number;
+}
+
+// Adjust this to match what's returned from your getOrders() function
+interface IOrderItem {
+  createdDate: Date;        // from Mongoose
+  totalSum: number | string;
+}
+
+interface IOrderResponse {
+  items: IOrderItem[];
 }
 
 export default function ProfilePage() {
@@ -52,11 +61,16 @@ export default function ProfilePage() {
         return;
       }
 
-      console.log(userData)
-      setUser(userData);
+      // Set simplified user object
+      setUser({
+        email: userData.email,
+        name: userData.name,
+        role: userData.role,
+        avatar: userData.avatar,
+      });
 
-      const orders = await getOrders();
-      if (orders) {
+    const orders: IOrderResponse | null = (await getOrders()) ?? null;
+      if (orders && orders.items) {
         let lifetimeOrders = 0;
         let lifetimeSpent = 0;
         let yearlyOrders = 0;
@@ -64,25 +78,28 @@ export default function ProfilePage() {
         let monthlyOrders = 0;
         let monthlySpent = 0;
 
-        const currentYear = new Date().getFullYear();
-        const currentMonth = new Date().getMonth() + 1;
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1;
 
-        orders.items.forEach((order: { createdDate: string | number | Date; totalSum: string }) => {
+        orders.items.forEach((order) => {
           const orderDate = new Date(order.createdDate);
           const orderYear = orderDate.getFullYear();
           const orderMonth = orderDate.getMonth() + 1;
-          const totalSum = parseFloat(order.totalSum);
+          const totalSum = typeof order.totalSum === 'string'
+            ? parseFloat(order.totalSum)
+            : order.totalSum;
 
-          lifetimeOrders += 1;
+          lifetimeOrders++;
           lifetimeSpent += totalSum;
 
           if (orderYear === currentYear) {
-            yearlyOrders += 1;
+            yearlyOrders++;
             yearlySpent += totalSum;
           }
 
           if (orderYear === currentYear && orderMonth === currentMonth) {
-            monthlyOrders += 1;
+            monthlyOrders++;
             monthlySpent += totalSum;
           }
         });
@@ -102,52 +119,52 @@ export default function ProfilePage() {
   }, []);
 
   return (
-    <div className='min-h-screen p-8'>
-      <div className='max-w-4xl mx-auto'>
-        <h1 className='text-4xl font-bold text-center mb-12 bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 bg-clip-text text-transparent'>
+    <div className="min-h-screen p-8">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-4xl font-bold text-center mb-12 bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 bg-clip-text text-transparent">
           My Profile
         </h1>
 
         {isLoading ? (
-          <div className='flex items-center justify-center pt-7'>
-            <div className='animate-spin rounded-full h-10 w-10 border-b-2 border-purple-900'></div>
+          <div className="flex items-center justify-center pt-7">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-900"></div>
           </div>
         ) : (
           <>
-            <div className='bg-gray-2 border-2 p-6 rounded-lg shadow-lg mb-8'>
-              <div className='flex items-center space-x-4'>
-                <Avatar className='h-24 w-24 text-6xl text-purple-500'>
-                  <AvatarFallback className='bg-purple-500 text-gray-100'>
-                    {user?.avatar}
+            <div className="bg-gray-2 border-2 p-6 rounded-lg shadow-lg mb-8">
+              <div className="flex items-center space-x-4">
+                <Avatar className="h-24 w-24 text-6xl text-purple-500">
+                  <AvatarFallback className="bg-purple-500 text-gray-100">
+                    {user?.avatar ? user.avatar.charAt(0) : user?.name.charAt(0) || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h2 className='text-2xl font-semibold text-purple-500'>
-                    {user?.value}
+                  <h2 className="text-2xl font-semibold text-purple-500">
+                    {user?.name || 'Unknown User'}
                   </h2>
-                  <p className='text-gray-500'>{user?.identifier}</p>
+                  <p className="text-gray-500">{user?.email}</p>
                 </div>
               </div>
             </div>
 
-            <div className='border-2 p-6 rounded-lg shadow-lg'>
-              <h3 className='text-xl font-semibold mb-4 text-purple-500'>My Stats</h3>
-              <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+            <div className="border-2 p-6 rounded-lg shadow-lg">
+              <h3 className="text-xl font-semibold mb-4 text-purple-500">My Stats</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <StatCard
-                  icon={<Package className='h-8 w-8 text-purple-500' />}
-                  title='Lifetime Orders'
+                  icon={<Package className="h-8 w-8 text-purple-500" />}
+                  title="Lifetime Orders"
                   value={stats.lifetimeOrders}
                 />
                 <StatCard
-                  icon={<DollarSign className='h-8 w-8 text-purple-500' />}
-                  title='Lifetime Spent'
-                  value={`$${stats.lifetimeSpent.toFixed(2)}`}
+                  icon={<DollarSign className="h-8 w-8 text-purple-500" />}
+                  title="Lifetime Spent"
+                  value={`₹${stats.lifetimeSpent.toFixed(2)}`}
                 />
                 <StatCard
-                  icon={<Calendar className='h-8 w-8 text-purple-500' />}
-                  title='This Year'
+                  icon={<Calendar className="h-8 w-8 text-purple-500" />}
+                  title="This Year"
                   value={`${stats.yearlyOrders} orders`}
-                  subvalue={`$${stats.yearlySpent.toFixed(2)} spent`}
+                  subvalue={`₹${stats.yearlySpent.toFixed(2)} spent`}
                 />
               </div>
             </div>
@@ -170,12 +187,12 @@ function StatCard({
   subvalue?: string;
 }) {
   return (
-    <div className='bg-gray-100 p-4 rounded-lg flex items-center space-x-4'>
+    <div className="bg-gray-100 p-4 rounded-lg flex items-center space-x-4">
       {icon}
       <div>
-        <h4 className='text-sm font-medium text-gray-500'>{title}</h4>
-        <p className='text-2xl font-bold text-purple-500'>{value}</p>
-        {subvalue && <p className='text-sm text-gray-700'>{subvalue}</p>}
+        <h4 className="text-sm font-medium text-gray-500">{title}</h4>
+        <p className="text-2xl font-bold text-purple-500">{value}</p>
+        {subvalue && <p className="text-sm text-gray-700">{subvalue}</p>}
       </div>
     </div>
   );

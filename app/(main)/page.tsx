@@ -14,10 +14,12 @@ export default function HomePage() {
         <section className="mb-16">
           <div className="relative overflow-hidden rounded-2xl shadow-xl">
             <div className="w-full h-[400px] relative">
-              <img
+              <Image
                 src="https://assets.entrepreneur.com/content/3x2/2000/20150812074510-Online-shopping.jpeg?format=pjeg&auto=webp&crop=16:9&width=1200"
                 alt="Hero Banner"
                 className="absolute inset-0 w-full h-full object-cover opacity-20 z-0"
+                height={400}
+                width={1200}
               />
               <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-6">
                 <h1 className="text-4xl font-extrabold mb-4 bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 bg-clip-text text-transparent">
@@ -41,7 +43,42 @@ export default function HomePage() {
           <ProductCatalog
             key={catalog.id}
             title={catalog.localizeInfos.title}
-            products={catalog.catalogProducts.items || []}
+            products={(catalog.catalogProducts.items || []).map((product) => {
+              const calculatedPrice =
+                typeof product.price === 'number'
+                  ? product.price
+                  : typeof product.attributeValues?.p_price?.value === 'number'
+                  ? product.attributeValues.p_price.value
+                  : 0;
+
+              return {
+                ...product,
+                price: calculatedPrice,
+                attributeValues: {
+                  p_description: {
+                    value:
+                      product.attributeValues?.p_description?.value?.map(
+                        (v) => v?.htmlValue ?? ''
+                      ) ?? [],
+                  },
+                  p_price: {
+                    value: calculatedPrice,
+                  },
+                  p_image: {
+                    value: {
+                      downloadLink:
+                        product.attributeValues?.p_image?.value?.downloadLink ?? '',
+                    },
+                  },
+                  p_title: {
+                    value:
+                      product.attributeValues?.p_title?.value ??
+                      product.localizeInfos?.title ??
+                      '',
+                  },
+                },
+              };
+            })}
           />
         ))}
       </main>

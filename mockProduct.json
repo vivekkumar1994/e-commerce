@@ -1,55 +1,153 @@
-const mockProducts: Catalog[] = [
+[
     {
-      id: 'catalog-1',
-      localizeInfos: { title: 'Featured Products' },
-      catalogProducts: {
-        items: Array.from({ length: 25 }, (_, i) => ({
-          id: `product-${i + 1}`,
-          localizeInfos: { title: `Product ${i + 1}` },
-          price: parseFloat((Math.random() * 100 + 10).toFixed(2)),
-          attributeValues: {
-            p_description: {
-              value: [
-                {
-                  htmlValue: `<p>This is a description for Product ${i + 1}.</p>`,
-                },
-              ],
-            },
-            p_image: {
-              value: {
-                downloadLink: `/images/products/product-${i + 1}.jpg`,
+      "id": "catalog-1",
+      "localizeInfos": { "title": "Featured Products" },
+      "catalogProducts": {
+        "items": [
+          {
+            "id": "product-1",
+            "localizeInfos": { "title": "Product 1" },
+            "price": 29.99,
+            "attributeValues": {
+              "p_description": {
+                "value": [{ "htmlValue": "<p>This is a description for Product 1.</p>" }]
               },
-            },
-            p_title: { value: `Product ${i + 1}` },
-          },
-        })),
-      },
-    },
-    {
-      id: 'catalog-2',
-      localizeInfos: { title: 'New Arrivals' },
-      catalogProducts: {
-        items: Array.from({ length: 25 }, (_, i) => ({
-          id: `product-${i + 26}`,
-          localizeInfos: { title: `Product ${i + 26}` },
-          price: parseFloat((Math.random() * 150 + 20).toFixed(2)),
-          attributeValues: {
-            p_description: {
-              value: [
-                {
-                  htmlValue: `<p>This is a description for Product ${i + 26}.</p>`,
-                },
-              ],
-            },
-            p_image: {
-              value: {
-                downloadLink: `/images/products/product-${i + 26}.jpg`,
+              "p_image": {
+                "value": { "downloadLink": "/images/products/product-1.jpg" }
               },
-            },
-            p_title: { value: `Product ${i + 26}` },
+              "p_title": { "value": "Product 1" }
+            }
           },
-        })),
-      },
-    },
-  ];
+          {
+            "id": "product-2",
+            "localizeInfos": { "title": "Product 2" },
+            "price": 35.50,
+            "attributeValues": {
+              "p_description": {
+                "value": [{ "htmlValue": "<p>This is a description for Product 2.</p>" }]
+              },
+              "p_image": {
+                "value": { "downloadLink": "/images/products/product-2.jpg" }
+              },
+              "p_title": { "value": "Product 2" }
+            }
+          },
+          {
+            "id": "product-3",
+            "localizeInfos": { "title": "Product 3" },
+            "price": 49.99,
+            "attributeValues": {
+              "p_description": {
+                "value": [{ "htmlValue": "<p>This is a description for Product 3.</p>" }]
+              },
+              "p_image": {
+                "value": { "downloadLink": "/images/products/product-3.jpg" }
+              },
+              "p_title": { "value": "Product 3" }
+            }
+          },
+          {
+            "id": "product-4",
+            "localizeInfos": { "title": "Product 4" },
+            "price": 21.75,
+            "attributeValues": {
+              "p_description": {
+                "value": [{ "htmlValue": "<p>This is a description for Product 4.</p>" }]
+              },
+              "p_image": {
+                "value": { "downloadLink": "/images/products/product-4.jpg" }
+              },
+              "p_title": { "value": "Product 4" }
+            }
+          },
+          {
+            "id": "product-5",
+            "localizeInfos": { "title": "Product 5" },
+            "price": 18.00,
+            "attributeValues": {
+              "p_description": {
+                "value": [{ "htmlValue": "<p>This is a description for Product 5.</p>" }]
+              },
+              "p_image": {
+                "value": { "downloadLink": "/images/products/product-5.jpg" }
+              },
+              "p_title": { "value": "Product 5" }
+            }
+          },
+          {
+            "id": "product-6",
+            "localizeInfos": { "title": "Product 6" },
+            "price": 43.99,
+            "attributeValues": {
+              "p_description": {
+                "value": [{ "htmlValue": "<p>This is a description for Product 6.</p>" }]
+              },
+              "p_image": {
+                "value": { "downloadLink": "/images/products/product-6.jpg" }
+              },
+              "p_title": { "value": "Product 6" }
+            }
+          },
+          {
+            "id": "product-7",
+            "localizeInfos": { "title": "Product 7" },
+            "price": 65.00,
+            "attributeValues": {
+              "p_description": {
+                "value": [{ "htmlValue": "<p>This is a description for Product 7.</p>" }]
+              },
+              "p_image": {
+                "value": { "downloadLink": "/images/products/product-7.jpg" }
+              },
+              "p_title": { "value": "Product 7" }
+            }
+          },
+          {
+            "id": "product-8",
+            "localizeInfos": { "title": "Product 8" },
+            "price": 22.49,
+            "attributeValues": {
+              "p_description": {
+                "value": [{ "htmlValue": "<p>This is a description for Product 8.</p>" }]
+              },
+              "p_image": {
+                "value": { "downloadLink": "/images/products/product-8.jpg" }
+              },
+              "p_title": { "value": "Product 8" }
+            }
+          },
+          {
+            "id": "product-9",
+            "localizeInfos": { "title": "Product 9" },
+            "price": 39.90,
+            "attributeValues": {
+              "p_description": {
+                "value": [{ "htmlValue": "<p>This is a description for Product 9.</p>" }]
+              },
+              "p_image": {
+                "value": { "downloadLink": "/images/products/product-9.jpg" }
+              },
+              "p_title": { "value": "Product 9" }
+            }
+          },
+          {
+            "id": "product-10",
+            "localizeInfos": { "title": "Product 10" },
+            "price": 15.25,
+            "attributeValues": {
+              "p_description": {
+                "value": [{ "htmlValue": "<p>This is a description for Product 10.</p>" }]
+              },
+              "p_image": {
+                "value": { "downloadLink": "/images/products/product-10.jpg" }
+              },
+              "p_title": { "value": "Product 10" }
+            }
+          }
+  
+          
+        ]
+      }
+    }
+  ]
   
