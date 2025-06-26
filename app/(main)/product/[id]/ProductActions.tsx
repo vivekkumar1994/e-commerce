@@ -76,9 +76,29 @@ export default function ProductActions({ product }: ProductActionsProps) {
     });
   };
 
-  const handleGoToCheckout = () => {
-    router.push('/checkout');
-  };
+const handleGoToCheckout = () => {
+  if (user) {
+    const orderData = {
+      product: {
+        id,
+        title,
+        price,
+        quantity,
+        image,
+        totalPrice,
+      },
+      user,
+    };
+
+    try {
+      localStorage.setItem('lastOrder', JSON.stringify(orderData));
+    } catch (error) {
+      console.error('Error saving checkout data:', error);
+    }
+  }
+
+  router.push('/checkout');
+};
 
   const increment = () => {
     if (quantity < 100) setQuantity((prev) => prev + 1);
