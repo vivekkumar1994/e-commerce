@@ -14,7 +14,7 @@ const Footer: React.FC = () => {
 
         {/* Brand */}
         <div>
-          <h2 className="text-xl font-bold text-white mb-4">SahandShop</h2>
+          <h2 className="text-xl font-bold text-white mb-4">RoshanShop</h2>
           <p className="text-sm">
             Your one-stop shop for quality products and unbeatable prices.
           </p>
