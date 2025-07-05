@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { createRazorpayOrder } from '@/action/createRazorpayOrder';
-import { saveOrderToDB } from '@/action/createOrder'; // ✅ Make sure this path is correct
 
 interface IUser {
   name: string;
@@ -73,12 +72,12 @@ export default function CheckoutPage() {
   const [shippingAddress, setShippingAddress] = useState('');
   const [shippingPincode, setShippingPincode] = useState('');
 
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-    document.body.appendChild(script);
-  }, []);
+    useEffect(() => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }, []);
 
   useEffect(() => {
     const stored = localStorage.getItem('lastOrder');
@@ -91,11 +90,11 @@ export default function CheckoutPage() {
           setShippingEmail(parsed.user.email);
           setShippingPhone(parsed.user.phone || '');
         } else throw new Error('Invalid order structure');
-      } catch (err) {
-        console.error('Invalid order parsing error:', err);
-        toast.error('Invalid order data. Redirecting...');
-        setTimeout(() => router.push('/'), 2000);
-      }
+      }catch (err) {
+  console.error('Invalid order parsing error:', err); // 👈 use it here
+  toast.error('Invalid order data. Redirecting...');
+  setTimeout(() => router.push('/'), 2000);
+}
     } else {
       toast.error('No order data found. Redirecting...');
       setTimeout(() => router.push('/'), 2000);
@@ -144,29 +143,11 @@ export default function CheckoutPage() {
         description: product.title,
         image: product.image || '',
         order_id: response.orderId,
-        handler: async (rzpResponse) => {
+        handler: (rzpResponse) => {
           toast.success('Payment Successful!', {
             description: `Payment ID: ${rzpResponse.razorpay_payment_id}`,
           });
-
-          const result = await saveOrderToDB({
-            user,
-            product,
-            paymentId: rzpResponse.razorpay_payment_id,
-            shippingName,
-            shippingEmail,
-            shippingPhone,
-            shippingAddress,
-            shippingPincode,
-          });
-
-          if (result.success) {
-            toast.success('Order saved successfully.');
-          } else {
-            toast.error('Payment succeeded, but order save failed.');
-          }
-
-          router.push('/success');
+          router.push('/success'); // or /thank-you
         },
         prefill: {
           name: user.name,

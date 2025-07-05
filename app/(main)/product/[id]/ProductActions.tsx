@@ -58,7 +58,7 @@ export default function ProductActions({ product }: ProductActionsProps) {
     if (email && name && role) {
       setUser({ name, email, role, avatar, phone: phone || '' });
     } else {
-      router.push('/');
+      router.push('/auth?type=login');
     }
 
     setIsLoading(false);

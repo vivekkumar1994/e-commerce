@@ -4,10 +4,9 @@ import { useState, useEffect } from 'react';
 import { Package, DollarSign, Calendar } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import getUserSession from '@/action/getUserSession';
-import { getOrders } from '@/action/order/get-orders';
+import { getOrders } from '@/action/getorder';
 import { redirect } from 'next/navigation';
 
-// Match what's returned by getUserSession()
 interface IUserEntity {
   email: string;
   name: string;
@@ -24,15 +23,12 @@ interface UserStats {
   monthlySpent: number;
 }
 
-// Adjust this to match what's returned from your getOrders() function
 interface IOrderItem {
-  createdDate: Date;        // from Mongoose
+  createdDate: Date | string;
   totalSum: number | string;
 }
 
-interface IOrderResponse {
-  items: IOrderItem[];
-}
+
 
 export default function ProfilePage() {
   const [user, setUser] = useState<IUserEntity | null>(null);
@@ -61,7 +57,6 @@ export default function ProfilePage() {
         return;
       }
 
-      // Set simplified user object
       setUser({
         email: userData.email,
         name: userData.name,
@@ -69,8 +64,10 @@ export default function ProfilePage() {
         avatar: userData.avatar,
       });
 
-    const orders: IOrderResponse | null = (await getOrders()) ?? null;
-      if (orders && orders.items) {
+      const ordersResponse = await getOrders();
+      const orders: IOrderItem[] = ordersResponse?.items ?? [];
+
+      if (orders.length) {
         let lifetimeOrders = 0;
         let lifetimeSpent = 0;
         let yearlyOrders = 0;
@@ -82,27 +79,27 @@ export default function ProfilePage() {
         const currentYear = now.getFullYear();
         const currentMonth = now.getMonth() + 1;
 
-        orders.items.forEach((order) => {
+        for (const order of orders) {
           const orderDate = new Date(order.createdDate);
           const orderYear = orderDate.getFullYear();
           const orderMonth = orderDate.getMonth() + 1;
-          const totalSum = typeof order.totalSum === 'string'
+          const total = typeof order.totalSum === 'string'
             ? parseFloat(order.totalSum)
             : order.totalSum;
 
           lifetimeOrders++;
-          lifetimeSpent += totalSum;
+          lifetimeSpent += total;
 
           if (orderYear === currentYear) {
             yearlyOrders++;
-            yearlySpent += totalSum;
+            yearlySpent += total;
           }
 
           if (orderYear === currentYear && orderMonth === currentMonth) {
             monthlyOrders++;
-            monthlySpent += totalSum;
+            monthlySpent += total;
           }
-        });
+        }
 
         setStats({
           lifetimeOrders,
