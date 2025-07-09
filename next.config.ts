@@ -1,8 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  typedRoutes: false, // <-- add this line to disable buggy type checks
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb', // Increase file upload size
+    },
+  },
   images: {
-    domains: ['assets.entrepreneur.com'], // enable external image domains
+    domains: ['assets.entrepreneur.com'], // Allow external image host
   },
 };
 

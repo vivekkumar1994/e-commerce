@@ -10,6 +10,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { signIn, signUp } from '@/action/AuthAction';
 
+type UserRole = 'user' | 'admin' | 'seller';
+
+interface User {
+  email: string;
+  name: string;
+  role: UserRole;
+}
+
 interface SignUpFormData {
   email: string;
   password: string;
@@ -100,13 +108,21 @@ function AuthForm() {
         }
       } else {
         if (inputValues.email && inputValues.password) {
-          const res = await signIn({
+          const res: {
+            message: string;
+            user: User;
+          } = await signIn({
             email: inputValues.email,
             password: inputValues.password,
           });
 
           toast.success(res.message);
-          router.push('/');
+
+          if (res.user?.role === 'admin' || res.user?.role === 'seller') {
+            router.push('/dashboard');
+          } else {
+            router.push('/');
+          }
         }
       }
     } catch (error: unknown) {
@@ -186,7 +202,9 @@ function AuthForm() {
                 onChange={handleInputChange}
                 disabled={isSubmitting}
               />
-              {passwordMatchError && <p className="text-sm text-red-500 mt-1">Passwords do not match.</p>}
+              {passwordMatchError && (
+                <p className="text-sm text-red-500 mt-1">Passwords do not match.</p>
+              )}
             </div>
           )}
 
@@ -219,7 +237,13 @@ function AuthForm() {
             }`}
             disabled={isSubmitting || passwordMatchError || !captchaVerified}
           >
-            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : isSignUp ? 'Sign Up' : 'Sign In'}
+            {isSubmitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : isSignUp ? (
+              'Sign Up'
+            ) : (
+              'Sign In'
+            )}
           </Button>
         </form>
 

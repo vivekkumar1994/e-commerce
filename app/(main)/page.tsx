@@ -1,13 +1,110 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import ProductCatalog from '@/components/productCatalog';
 import Image from 'next/image';
-import { mockProducts } from '@/lib/mockProducts';
 import { motion } from 'framer-motion';
+import { getProductsByCategory } from '@/action/product.actions';
+
+type ProductInput = {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  image: string;
+};
+
+type RawProduct = {
+  _id?: string | { toString(): string };
+  id?: string;
+  title?: string;
+  description?: string;
+  price?: number | string;
+  image?: string;
+  attributeValues?: {
+    p_title?: { value?: string };
+    p_description?: { value?: string[] | string };
+    p_image?: { value?: { downloadLink?: string } };
+  };
+};
+
+const categories = [
+  { name: 'Electronics', key: 'electronics' },
+  { name: 'Fashion', key: 'fashion' },
+  { name: 'Home & Kitchen', key: 'homeandkitchen' },
+  { name: 'Books', key: 'books' },
+];
 
 export default function HomePage() {
+  const [categoryProducts, setCategoryProducts] = useState<Record<string, ProductInput[]>>({});
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      const results = await Promise.all(
+        categories.map(async (cat) => {
+          const raw = await getProductsByCategory(cat.key);
+
+          // Transform raw data to safe ProductInput[]
+          const products: ProductInput[] = (raw as unknown[]).map((p: unknown) => {
+            const product = p as RawProduct;
+
+            const id =
+              typeof product._id === 'string'
+                ? product._id
+                : product._id?.toString?.() ?? product.id ?? 'unknown';
+
+            const title =
+              product.title ||
+              product.attributeValues?.p_title?.value ||
+              'Untitled';
+
+            const description = product.description
+              ? product.description
+              : Array.isArray(product.attributeValues?.p_description?.value)
+              ? product.attributeValues?.p_description?.value.join(', ')
+              : typeof product.attributeValues?.p_description?.value === 'string'
+              ? product.attributeValues?.p_description?.value
+              : '';
+
+            const image =
+              product.image ||
+              product.attributeValues?.p_image?.value?.downloadLink ||
+              '';
+
+            const price =
+              typeof product.price === 'number'
+                ? product.price
+                : Number(product.price) || 0;
+
+            return {
+              id,
+              title,
+              description,
+              image,
+              price,
+            };
+          });
+
+          return {
+            key: cat.name,
+            products,
+          };
+        })
+      );
+
+      const mapped: Record<string, ProductInput[]> = {};
+      for (const { key, products } of results) {
+        mapped[key] = products;
+      }
+
+      setCategoryProducts(mapped);
+    };
+
+    loadProducts();
+  }, []);
+
   return (
     <div className="min-h-screen bg-white">
       <main className="container mx-auto px-4 py-10 space-y-24">
@@ -48,58 +145,23 @@ export default function HomePage() {
         <section>
           <h2 className="text-2xl font-bold text-center mb-8">Top Categories</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {['Electronics', 'Fashion', 'Home & Kitchen', 'Books'].map((cat) => (
+            {categories.map((cat) => (
               <div
-                key={cat}
+                key={cat.name}
                 className="bg-gray-100 p-6 rounded-xl shadow hover:shadow-md transition text-center font-semibold text-gray-700"
               >
-                {cat}
+                {cat.name}
               </div>
             ))}
           </div>
         </section>
 
         {/* Product Catalog Sections */}
-        {mockProducts.map((catalog) => (
+        {categories.map((cat) => (
           <ProductCatalog
-            key={catalog.id}
-            title={catalog.localizeInfos.title}
-            products={(catalog.catalogProducts.items || []).map((product) => {
-              const calculatedPrice =
-                typeof product.price === 'number'
-                  ? product.price
-                  : typeof product.attributeValues?.p_price?.value === 'number'
-                  ? product.attributeValues.p_price.value
-                  : 0;
-
-              return {
-                ...product,
-                price: calculatedPrice,
-                attributeValues: {
-                  p_description: {
-                    value:
-                      product.attributeValues?.p_description?.value?.map(
-                        (v) => v?.htmlValue ?? ''
-                      ) ?? [],
-                  },
-                  p_price: {
-                    value: calculatedPrice,
-                  },
-                  p_image: {
-                    value: {
-                      downloadLink:
-                        product.attributeValues?.p_image?.value?.downloadLink ?? '',
-                    },
-                  },
-                  p_title: {
-                    value:
-                      product.attributeValues?.p_title?.value ??
-                      product.localizeInfos?.title ??
-                      '',
-                  },
-                },
-              };
-            })}
+            key={cat.name}
+            title={cat.name}
+            products={categoryProducts[cat.name] || []}
           />
         ))}
 
@@ -110,8 +172,7 @@ export default function HomePage() {
             {[
               {
                 name: 'Ravi Sharma',
-                feedback:
-                  'Amazing quality and fast delivery. I’ll definitely shop again!',
+                feedback: 'Amazing quality and fast delivery. I’ll definitely shop again!',
               },
               {
                 name: 'Sneha Kapoor',
@@ -122,10 +183,7 @@ export default function HomePage() {
                 feedback: 'User-friendly website and smooth checkout process!',
               },
             ].map((review, idx) => (
-              <div
-                key={idx}
-                className="bg-gray-50 p-6 rounded-lg shadow border"
-              >
+              <div key={idx} className="bg-gray-50 p-6 rounded-lg shadow border">
                 <p className="text-gray-600 italic mb-4">{review.feedback}</p>
                 <p className="font-semibold text-gray-800">— {review.name}</p>
               </div>
@@ -145,9 +203,7 @@ export default function HomePage() {
               placeholder="Enter your email"
               className="px-4 py-2 rounded-md border w-64"
             />
-            <Button className="bg-purple-600 text-white px-6 py-2">
-              Subscribe
-            </Button>
+            <Button className="bg-purple-600 text-white px-6 py-2">Subscribe</Button>
           </form>
         </section>
       </main>

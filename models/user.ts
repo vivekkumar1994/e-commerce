@@ -17,6 +17,8 @@ export interface IUser extends Document {
   formData: IFormData[];
   role: 'user' | 'admin';
   comparePassword: (candidatePassword: string) => Promise<boolean>;
+   createdAt: Date;  // ✅ Add this
+  updatedAt: Date;
 }
 
 // Mongoose schema

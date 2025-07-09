@@ -1,6 +1,7 @@
 'use server';
 
 import { cookies } from 'next/headers';
+import { connectToDB } from "@/lib/db";
 
 import { Order } from '@/models/order';
 
@@ -23,3 +24,24 @@ export const getOrders = async () => {
       console.error({ error });
     }
   };
+
+  export const getAllOrdersForAdmin = async () => {
+  try {
+    await connectToDB();
+
+    const orders = await Order.find().sort({ createdAt: -1 }).lean();
+
+    return orders.map((order) => ({
+      _id: order._id.toString(),
+      createdAt: order.createdAt?.toString(),
+      status: order.status,
+      paymentId: order.paymentId,
+      product: order.product,
+      user: order.user,
+      shipping: order.shipping,
+    }));
+  } catch (error) {
+    console.error("Error fetching all orders for admin:", error);
+    return [];
+  }
+};

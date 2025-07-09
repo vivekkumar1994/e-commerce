@@ -27,11 +27,11 @@ interface IUserSession {
   avatar?: string;
 }
 
-// Helper to parse cookies
+// Decode cookie values
 function getCookieValue(name: string): string | undefined {
   const cookies = document.cookie.split("; ");
   const cookie = cookies.find((c) => c.startsWith(`${name}=`));
-  return cookie?.split("=")[1];
+  return cookie ? decodeURIComponent(cookie.split("=")[1]) : undefined;
 }
 
 export default function Navbar() {
@@ -48,8 +48,6 @@ export default function Navbar() {
     const name = getCookieValue("userName");
     const role = getCookieValue("userRole");
     const avatar = getCookieValue("avatar");
-
-    console.log(email, name, role, avatar, "cookie values");
 
     if (email && name && role) {
       setUser({ email, name, role, avatar });
@@ -111,8 +109,7 @@ export default function Navbar() {
               />
             </form>
 
-            {/* Only show Cart if user is logged in */}
-            {user && (
+            {user?.role === "user" && (
               <Link href="/cart">
                 <Button size="icon" className="relative" variant="ghost">
                   <ShoppingCart className="h-5 w-5 text-gray-600 hover:text-purple-500" />
@@ -148,19 +145,25 @@ export default function Navbar() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile">
-                      <User className="mr-2 h-4 w-4" />
-                      Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/orders">
-                      <ShoppingCart className="mr-2 h-4 w-4" />
-                      Orders
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+
+                  {user.role === "user" && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/profile">
+                          <User className="mr-2 h-4 w-4" />
+                          Profile
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/orders">
+                          <ShoppingCart className="mr-2 h-4 w-4" />
+                          Orders
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+
                   <DropdownMenuItem
                     onClick={handleLogout}
                     className="cursor-pointer"
@@ -173,10 +176,7 @@ export default function Navbar() {
             ) : (
               <div className="flex space-x-2">
                 <Link href="/auth?type=login">
-                  <Button
-                    variant="outline"
-                    className="border-gray-300 text-purple-600"
-                  >
+                  <Button variant="outline" className="border-gray-300 text-purple-600">
                     Login
                   </Button>
                 </Link>
@@ -202,10 +202,7 @@ export default function Navbar() {
       </div>
 
       {isMobileMenuOpen && (
-        <div
-          ref={mobileMenuRef}
-          className="md:hidden bg-gray-100 px-4 py-4 space-y-3"
-        >
+        <div ref={mobileMenuRef} className="md:hidden bg-gray-100 px-4 py-4 space-y-3">
           <form onSubmit={handleSearch}>
             <Input
               type="text"
@@ -216,20 +213,19 @@ export default function Navbar() {
             />
           </form>
 
-          <Link
-            href="/cart"
-            className="block text-gray-500 hover:text-white hover:bg-purple-500 p-2 rounded"
-          >
-            Cart
-          </Link>
+          {user?.role === "user" && (
+            <Link
+              href="/cart"
+              className="block text-gray-500 hover:text-white hover:bg-purple-500 p-2 rounded"
+            >
+              Cart
+            </Link>
+          )}
 
           {user ? (
             <>
               <div className="flex items-center gap-3 border-t pt-4">
-                <Button
-                  variant="ghost"
-                  className="relative h-8 w-8 rounded-full"
-                >
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8 border bg-purple-600 text-white">
                     <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                   </Avatar>
@@ -240,18 +236,24 @@ export default function Navbar() {
                   <div className="text-sm text-gray-500">{user.email}</div>
                 </div>
               </div>
-              <Link
-                href="/profile"
-                className="block text-gray-500 hover:text-white hover:bg-purple-500 p-2 rounded"
-              >
-                Your Profile
-              </Link>
-              <Link
-                href="/orders"
-                className="block text-gray-500 hover:text-white hover:bg-purple-500 p-2 rounded"
-              >
-                Orders
-              </Link>
+
+              {user.role === "user" && (
+                <>
+                  <Link
+                    href="/profile"
+                    className="block text-gray-500 hover:text-white hover:bg-purple-500 p-2 rounded"
+                  >
+                    Your Profile
+                  </Link>
+                  <Link
+                    href="/orders"
+                    className="block text-gray-500 hover:text-white hover:bg-purple-500 p-2 rounded"
+                  >
+                    Orders
+                  </Link>
+                </>
+              )}
+
               <button
                 onClick={handleLogout}
                 className="block w-full text-left text-gray-500 hover:text-white hover:bg-purple-500 p-2 rounded"
