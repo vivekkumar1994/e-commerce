@@ -1,40 +1,18 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
-import ProductCatalog from '@/components/productCatalog';
-import Image from 'next/image';
-import { motion } from 'framer-motion';
-import { getProductsByCategory } from '@/action/product.actions';
-
-type ProductInput = {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  image: string;
-};
-
-type RawProduct = {
-  _id?: string | { toString(): string };
-  id?: string;
-  title?: string;
-  description?: string;
-  price?: number | string;
-  image?: string;
-  attributeValues?: {
-    p_title?: { value?: string };
-    p_description?: { value?: string[] | string };
-    p_image?: { value?: { downloadLink?: string } };
-  };
-};
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
+import ProductCatalog from "@/components/productCatalog";
+import Image from "next/image";
+import { motion } from "framer-motion";
+import { getProductsByCategory, ProductInput } from "@/action/product.actions";
 
 const categories = [
-  { name: 'Electronics', key: 'electronics' },
-  { name: 'Fashion', key: 'fashion' },
-  { name: 'Home & Kitchen', key: 'homeandkitchen' },
-  { name: 'Books', key: 'books' },
+  { name: "Electronics", key: "electronics" },
+  { name: "Fashion", key: "fashion" },
+  { name: "Home & Kitchen", key: "homeandkitchen" },
+  { name: "Books", key: "books" },
 ];
 
 export default function HomePage() {
@@ -44,53 +22,8 @@ export default function HomePage() {
     const loadProducts = async () => {
       const results = await Promise.all(
         categories.map(async (cat) => {
-          const raw = await getProductsByCategory(cat.key);
-
-          // Transform raw data to safe ProductInput[]
-          const products: ProductInput[] = (raw as unknown[]).map((p: unknown) => {
-            const product = p as RawProduct;
-
-            const id =
-              typeof product._id === 'string'
-                ? product._id
-                : product._id?.toString?.() ?? product.id ?? 'unknown';
-
-            const title =
-              product.title ||
-              product.attributeValues?.p_title?.value ||
-              'Untitled';
-
-            const description = product.description
-              ? product.description
-              : Array.isArray(product.attributeValues?.p_description?.value)
-              ? product.attributeValues?.p_description?.value.join(', ')
-              : typeof product.attributeValues?.p_description?.value === 'string'
-              ? product.attributeValues?.p_description?.value
-              : '';
-
-            const image =
-              product.image ||
-              product.attributeValues?.p_image?.value?.downloadLink ||
-              '';
-
-            const price =
-              typeof product.price === 'number'
-                ? product.price
-                : Number(product.price) || 0;
-
-            return {
-              id,
-              title,
-              description,
-              image,
-              price,
-            };
-          });
-
-          return {
-            key: cat.name,
-            products,
-          };
+          const products = await getProductsByCategory(cat.key);
+          return { key: cat.name, products };
         })
       );
 
@@ -156,7 +89,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Product Catalog Sections */}
+        {/* Product Catalog */}
         {categories.map((cat) => (
           <ProductCatalog
             key={cat.name}
@@ -171,16 +104,16 @@ export default function HomePage() {
           <div className="grid gap-6 md:grid-cols-3">
             {[
               {
-                name: 'Ravi Sharma',
-                feedback: 'Amazing quality and fast delivery. I’ll definitely shop again!',
+                name: "Ravi Sharma",
+                feedback: "Amazing quality and fast delivery. I’ll definitely shop again!",
               },
               {
-                name: 'Sneha Kapoor',
-                feedback: 'Great customer service and awesome product variety!',
+                name: "Sneha Kapoor",
+                feedback: "Great customer service and awesome product variety!",
               },
               {
-                name: 'Aditya Verma',
-                feedback: 'User-friendly website and smooth checkout process!',
+                name: "Aditya Verma",
+                feedback: "User-friendly website and smooth checkout process!",
               },
             ].map((review, idx) => (
               <div key={idx} className="bg-gray-50 p-6 rounded-lg shadow border">

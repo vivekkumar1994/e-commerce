@@ -46,7 +46,7 @@ const ProductCard = ({ product }: { product: IProduct }) => {
     <div className="group relative h-full flex flex-col rounded-lg shadow-lg border border-gray-200 bg-white">
       <Link href={`/product/${product.id}`} className="relative w-full pt-[100%] bg-gray-50 overflow-hidden">
         {imageUrl.startsWith('data:image') ? (
-          <Image
+          <img
             src={imageUrl}
             alt={title}
             className="absolute inset-0 w-full h-full object-contain transition-transform duration-300 group-hover:scale-105 border-b border-gray-200"
@@ -57,8 +57,6 @@ const ProductCard = ({ product }: { product: IProduct }) => {
             alt={title}
             fill
             className="object-contain transition-transform duration-300 group-hover:scale-105 border-b border-gray-200"
-            height={100}
-            width={100}
           />
         )}
       </Link>
