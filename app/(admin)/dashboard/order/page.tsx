@@ -3,8 +3,24 @@
 import { useEffect, useState } from "react";
 import { getAllOrdersForAdmin } from "@/action/order/get-orders";
 
+// ✅ Type for admin order
+type AdminOrder = {
+  _id: string;
+  createdAt: string;
+  product: {
+    title: string;
+    quantity: number;
+    totalPrice: number;
+  };
+  user: {
+    name: string;
+    email: string;
+  };
+  status: string;
+};
+
 export default function AdminOrdersDashboard() {
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
