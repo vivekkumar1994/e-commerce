@@ -112,7 +112,7 @@ export default function Navbar() {
             </form>
 
             {user?.role === "seller" && (
-              <Link href="/seller">
+              <Link href="/seller?type=login">
                 <Button variant="ghost" className="text-purple-600 hover:text-purple-800">
                   Seller Dashboard
                 </Button>
