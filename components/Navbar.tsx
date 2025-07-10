@@ -87,6 +87,8 @@ export default function Navbar() {
     }
   };
 
+  const showAvatar = user && (user.role === "user" || user.role === "admin");
+
   return (
     <nav>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b-2 border-gray-200">
@@ -109,6 +111,14 @@ export default function Navbar() {
               />
             </form>
 
+            {user?.role === "seller" && (
+              <Link href="/seller">
+                <Button variant="ghost" className="text-purple-600 hover:text-purple-800">
+                  Seller Dashboard
+                </Button>
+              </Link>
+            )}
+
             {user?.role === "user" && (
               <Link href="/cart">
                 <Button size="icon" className="relative" variant="ghost">
@@ -126,7 +136,7 @@ export default function Navbar() {
               <Avatar className="h-8 w-8">
                 <AvatarFallback>-</AvatarFallback>
               </Avatar>
-            ) : user ? (
+            ) : showAvatar ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="h-8 w-8 p-0 rounded-full">
@@ -164,10 +174,7 @@ export default function Navbar() {
                     </>
                   )}
 
-                  <DropdownMenuItem
-                    onClick={handleLogout}
-                    className="cursor-pointer"
-                  >
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
                     Log out
                   </DropdownMenuItem>
@@ -222,7 +229,16 @@ export default function Navbar() {
             </Link>
           )}
 
-          {user ? (
+          {user?.role === "seller" && (
+            <Link
+              href="/seller?type=login"
+              className="block text-gray-500 hover:text-white hover:bg-purple-500 p-2 rounded"
+            >
+              Seller Dashboard
+            </Link>
+          )}
+
+          {showAvatar ? (
             <>
               <div className="flex items-center gap-3 border-t pt-4">
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -230,7 +246,6 @@ export default function Navbar() {
                     <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                   </Avatar>
                 </Button>
-
                 <div>
                   <div className="font-medium text-purple-600">{user.name}</div>
                   <div className="text-sm text-gray-500">{user.email}</div>

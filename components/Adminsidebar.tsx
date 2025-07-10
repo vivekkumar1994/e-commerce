@@ -11,11 +11,12 @@ import {
   Package,
   Plus,
   LogOut,
+  Menu,
+  X,
 } from "lucide-react";
 import { logout } from "@/action/AuthAction";
 import Image from "next/image";
 
-// Utility function to read cookie value
 function getCookieValue(name: string): string | undefined {
   const cookies = document.cookie.split("; ");
   const cookie = cookies.find((c) => c.startsWith(`${name}=`));
@@ -48,6 +49,7 @@ export default function AdminSidebar() {
     avatar?: string;
   } | null>(null);
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -70,64 +72,92 @@ export default function AdminSidebar() {
   const navLinks = user?.role === "seller" ? sellerNavLinks : adminNavLinks;
 
   return (
-    <aside className="w-full md:w-64 min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white flex flex-col justify-between shadow-lg">
-      {/* Top - User Info */}
-      <div className="p-6">
-        <div className="flex items-center gap-4 mb-8">
-          {user?.avatar ? (
-            <Image
-              src={user.avatar}
-              alt="Avatar"
-              className="w-12 h-12 rounded-full border-2 border-white shadow"
-              height={100}
-              width={100}
-            />
-          ) : (
-            <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center text-lg font-semibold shadow">
-              {user?.name?.charAt(0) || "A"}
-            </div>
-          )}
-          <div>
-            <h2 className="text-lg font-semibold">{user?.name || "Admin"}</h2>
-            <p className="text-sm text-gray-400 capitalize">
-              {user?.role || "admin"}
-            </p>
-          </div>
+    <>
+      {/* Hamburger Button */}
+      <button
+        className="md:hidden fixed top-4 left-4 z-50 bg-gray-800 text-white p-2 rounded-full shadow"
+        onClick={() => setSidebarOpen(true)}
+      >
+        <Menu size={20} />
+      </button>
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed z-40 top-0 left-0 h-full w-64 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white shadow-lg transform transition-transform duration-300 ease-in-out ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0 md:static md:h-screen`}
+      >
+        {/* Close Button for Mobile */}
+        <div className="md:hidden flex justify-end p-4">
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="text-gray-300 hover:text-white"
+          >
+            <X size={24} />
+          </button>
         </div>
 
-        {/* Navigation Menu */}
-        <nav className="space-y-2 text-sm font-medium">
-          {navLinks.map((item) => (
-            <SidebarItem
-              key={item.href}
-              label={item.label}
-              icon={item.icon}
-              href={item.href}
-              activePath={pathname}
-            />
-          ))}
-        </nav>
-      </div>
+        <div className="p-6 flex flex-col justify-between h-full overflow-y-auto">
+          {/* Top - User Info */}
+          <div>
+            <div className="flex items-center gap-4 mb-4">
+              {user?.avatar ? (
+                <Image
+                  src={user.avatar}
+                  alt="Avatar"
+                  className="w-12 h-12 rounded-full border-2 border-white shadow"
+                  height={100}
+                  width={100}
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center text-lg font-semibold shadow">
+                  {user?.name?.charAt(0) || "A"}
+                </div>
+              )}
+              <div>
+                <h2 className="text-lg font-semibold">{user?.name || "Admin"}</h2>
+                <p className="text-sm text-gray-400 capitalize">
+                  {user?.role || "admin"}
+                </p>
+              </div>
+            </div>
 
-      {/* Bottom - Action Buttons */}
-      <div className="p-6 space-y-2">
-        {user?.role === "admin" && (
-          <button
-            onClick={() => alert("Open create user modal")}
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-500 hover:from-blue-500 hover:to-indigo-400 text-white py-2 px-4 rounded-lg font-semibold shadow transition flex items-center justify-center gap-2"
-          >
-            <Plus size={18} /> Create User
-          </button>
-        )}
+            {/* Buttons under Avatar */}
+            <div className="space-y-2 mb-6">
+              {user?.role === "admin" && (
+                <button
+                  onClick={() => alert("Open create user modal")}
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-500 hover:from-blue-500 hover:to-indigo-400 text-white py-2 px-4 rounded-lg font-semibold shadow transition flex items-center justify-center gap-2"
+                >
+                  <Plus size={18} /> Create User
+                </button>
+              )}
 
-        <button
-          onClick={handleLogout}
-          className="w-full bg-gradient-to-r from-red-600 to-pink-500 hover:from-red-500 hover:to-pink-400 text-white py-2 px-4 rounded-lg font-semibold shadow transition flex items-center justify-center gap-2"
-        >
-          <LogOut size={18} /> Logout
-        </button>
-      </div>
-    </aside>
+              <button
+                onClick={handleLogout}
+                className="w-full bg-gradient-to-r from-red-600 to-pink-500 hover:from-red-500 hover:to-pink-400 text-white py-2 px-4 rounded-lg font-semibold shadow transition flex items-center justify-center gap-2"
+              >
+                <LogOut size={18} /> Logout
+              </button>
+            </div>
+
+            {/* Navigation */}
+            <nav className="space-y-2 text-sm font-medium">
+              {navLinks.map((item) => (
+                <SidebarItem
+                  key={item.href}
+                  label={item.label}
+                  icon={item.icon}
+                  href={item.href}
+                  activePath={pathname}
+                  onClick={() => setSidebarOpen(false)} // close on nav click (mobile)
+                />
+              ))}
+            </nav>
+          </div>
+        </div>
+      </aside>
+    </>
   );
 }
 
@@ -136,17 +166,20 @@ function SidebarItem({
   icon,
   href,
   activePath,
+  onClick,
 }: {
   label: string;
   icon: React.ReactNode;
   href: string;
   activePath: string;
+  onClick?: () => void;
 }) {
   const isActive = activePath === href;
 
   return (
     <Link
       href={href}
+      onClick={onClick}
       className={`flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-all ${
         isActive
           ? "bg-gray-700 text-white"

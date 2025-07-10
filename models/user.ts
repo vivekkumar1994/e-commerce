@@ -15,7 +15,7 @@ export interface IUser extends Document {
   identifier: string;
   avatar:string;
   formData: IFormData[];
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'seller';
   comparePassword: (candidatePassword: string) => Promise<boolean>;
    createdAt: Date;  // ✅ Add this
   updatedAt: Date;
@@ -36,7 +36,7 @@ const UserSchema = new Schema<IUser>(
     ],
     role: {
       type: String,
-      enum: ['user', 'admin'],
+      enum: ['user', 'admin','seller'],
       default: 'user',
     },
     avatar: { type: String, default: '' }, 

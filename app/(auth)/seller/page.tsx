@@ -23,7 +23,7 @@ interface SignUpFormData {
   password: string;
   reenterPassword: string;
   name: string;
-  role: UserRole;
+  role?: string; // Optional role, defaults to 'seller'
 }
 
 interface LoginFormData {
@@ -42,7 +42,7 @@ function AuthForm() {
 
   const router = useRouter();
   const [inputValues, setInputValues] = useState<Partial<SignUpFormData & LoginFormData>>({
-    role: 'user',
+    role: 'seller', // Default role
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -57,9 +57,7 @@ function AuthForm() {
         { marker: 'password', localizeInfos: { title: 'Password' } },
       ];
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setInputValues((prev) => ({ ...prev, [name]: value }));
 
@@ -104,13 +102,13 @@ function AuthForm() {
             email: inputValues.email,
             password: inputValues.password,
             name: inputValues.name,
-            role: inputValues.role as UserRole || 'user',
+            role: inputValues.role || 'seller', // Always use seller role
           });
 
           toast.success(res.message);
           setIsSignUp(false);
-          setInputValues({ role: 'user' });
-          router.push('/auth?type=login');
+          setInputValues({ role: 'seller' });
+          router.push('/seller?type=login');
         }
       } else {
         if (inputValues.email && inputValues.password) {
@@ -122,15 +120,14 @@ function AuthForm() {
             password: inputValues.password,
           });
 
-          if (res.user.role === 'admin') {
-            toast.success(res.message);
-            router.push('/dashboard');
-          } else if (res.user.role === 'user') {
-            toast.success(res.message);
-            router.push('/');
-          } else {
-            toast.error('Invalid user role. Access denied.');
+          if (res.user?.role !== 'seller') {
+            toast.error('Access denied. Only sellers can log in.');
+            setIsSubmitting(false);
+            return;
           }
+
+          toast.success(res.message);
+          router.push('/dashboard');
         }
       }
     } catch (error: unknown) {
@@ -146,11 +143,11 @@ function AuthForm() {
 
   const toggleForm = () => {
     setIsSignUp((prev) => !prev);
-    setInputValues({ role: 'user' });
+    setInputValues({ role: 'seller' }); // Reset with default role
     setAiSuggestion(null);
     setPasswordMatchError(false);
     setShowReenterPassword(false);
-    router.replace(`/auth?type=${isSignUp ? 'login' : 'signup'}`);
+    router.replace(`/seller?type=${isSignUp ? 'login' : 'signup'}`);
   };
 
   return (
@@ -163,14 +160,15 @@ function AuthForm() {
           </span>
         </div>
 
-        <div>
-          <h2 className="text-3xl font-bold mb-3 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent">
-            {isSignUp ? 'Create Account' : 'Welcome Back'}
+        <div className="text-center mb-4">
+          <p className="text-sm text-purple-400">🔒 Seller Portal</p>
+          <h2 className="text-3xl font-bold mt-1 mb-3 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent">
+            {isSignUp ? 'Create Seller Account' : 'Seller Login'}
           </h2>
           <p className="text-sm text-gray-400 mb-6">
             {isSignUp
-              ? 'Join us today and unlock exclusive deals!'
-              : 'Login to continue your journey.'}
+              ? 'Register as a seller to manage your store.'
+              : 'Login with your seller credentials.'}
           </p>
         </div>
 
@@ -193,25 +191,6 @@ function AuthForm() {
             </div>
           ))}
 
-          {isSignUp && (
-            <div>
-              <Label htmlFor="role" className="text-base text-gray-300 mb-2 block">
-                Role
-              </Label>
-              <select
-                id="role"
-                name="role"
-                className="w-full p-3 bg-zinc-800 border border-zinc-600 text-white rounded-md focus:ring-2 focus:ring-purple-500"
-                value={inputValues.role || 'user'}
-                onChange={handleInputChange}
-                disabled={isSubmitting}
-              >
-                <option value="user">User</option>
-                <option value="seller">Seller</option>
-              </select>
-            </div>
-          )}
-
           {isSignUp && showReenterPassword && (
             <div>
               <Label htmlFor="reenterPassword" className="text-base text-gray-300 mb-2 block">
@@ -233,6 +212,11 @@ function AuthForm() {
                 <p className="text-sm text-red-500 mt-1">Passwords do not match.</p>
               )}
             </div>
+          )}
+
+          {/* ✅ Hidden role input */}
+          {isSignUp && (
+            <input type="hidden" name="role" value="seller" />
           )}
 
           {aiSuggestion && (

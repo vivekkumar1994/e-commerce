@@ -4,23 +4,24 @@ import { cookies } from 'next/headers';
 import { signAccessToken, signRefreshToken } from '@/lib/auth';
 import { connectToDB } from '@/lib/db';
 import { User } from '@/models/user';
-
 export async function signUp({
   email,
   password,
   name,
+  role,
 }: {
   email: string;
   password: string;
   name: string;
+  role: string;
 }) {
   await connectToDB();
 
   const existing = await User.findOne({ email });
   if (existing) throw new Error('User already exists');
 
-  const newUser = new User({ email, password, name });
-  await newUser.save(); // Assumes password hashing in pre-save middleware
+  const newUser = new User({ email, password, name, role }); // ✅ include role
+  await newUser.save();
 
   const payload = {
     email: newUser.email,
@@ -31,13 +32,13 @@ export async function signUp({
   const accessToken = signAccessToken(payload);
   const refreshToken = signRefreshToken(payload);
 
-  const cookieStore = await cookies(); // ✅ no await
+  const cookieStore = await cookies();
 
   cookieStore.set('accessToken', accessToken, {
     httpOnly: true,
     secure: true,
     path: '/',
-    maxAge: 60 * 15, // 15 minutes
+    maxAge: 60 * 15,
     sameSite: 'strict',
   });
 
@@ -45,12 +46,13 @@ export async function signUp({
     httpOnly: true,
     secure: true,
     path: '/',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    maxAge: 60 * 60 * 24 * 7,
     sameSite: 'strict',
   });
 
   return { message: 'Sign-up successful', accessToken };
 }
+
 
 export async function signIn({
   email,
