@@ -1,22 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import ProductCatalog from "@/components/productCatalog";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { getProductsByCategory, ProductInput } from "@/action/product.actions";
+import { Swiper, SwiperSlide } from "swiper/react";
+import 'swiper/css';
+import 'swiper/css/navigation';
+import { Navigation } from 'swiper/modules';
 
 const categories = [
   { name: "Electronics", key: "electronics" },
   { name: "Fashion", key: "fashion" },
   { name: "Home & Kitchen", key: "homeandkitchen" },
   { name: "Books", key: "books" },
+  { name: "Beauty & Personal Care", key: "beauty" },
+  { name: "Sports & Fitness", key: "sports" },
+  { name: "Toys & Games", key: "toys" },
+  { name: "Automotive", key: "automotive" },
+  { name: "Health & Wellness", key: "health" },
+  { name: "Office Supplies", key: "office" },
+  { name: "Jewelry & Accessories", key: "jewelry" },
+  { name: "Footwear", key: "footwear" },
+  { name: "Groceries", key: "groceries" },
+  { name: "Pet Supplies", key: "pets" },
+  { name: "Musical Instruments", key: "music" },
 ];
 
 export default function HomePage() {
   const [categoryProducts, setCategoryProducts] = useState<Record<string, ProductInput[]>>({});
+  const router = useRouter();
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -37,6 +54,10 @@ export default function HomePage() {
 
     loadProducts();
   }, []);
+
+  const handleCategoryClick = (slug: string) => {
+    router.push(`/category/${slug}`);
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -74,19 +95,31 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Top Categories */}
+        {/* Top Categories Carousel */}
         <section>
           <h2 className="text-2xl font-bold text-center mb-8">Top Categories</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <Swiper
+            spaceBetween={20}
+            slidesPerView={2}
+            navigation
+            breakpoints={{
+              640: { slidesPerView: 3 },
+              768: { slidesPerView: 4 },
+              1024: { slidesPerView: 5 },
+            }}
+            modules={[Navigation]}
+          >
             {categories.map((cat) => (
-              <div
-                key={cat.name}
-                className="bg-gray-100 p-6 rounded-xl shadow hover:shadow-md transition text-center font-semibold text-gray-700"
-              >
-                {cat.name}
-              </div>
+              <SwiperSlide key={cat.key}>
+                <div
+                  onClick={() => handleCategoryClick(cat.key)}
+                  className="cursor-pointer bg-gray-100 p-6 rounded-xl shadow hover:shadow-md transition text-center font-semibold text-gray-700 hover:bg-gray-200"
+                >
+                  {cat.name}
+                </div>
+              </SwiperSlide>
             ))}
-          </div>
+          </Swiper>
         </section>
 
         {/* Product Catalog */}
@@ -103,18 +136,9 @@ export default function HomePage() {
           <h2 className="text-2xl font-bold mb-8">What Our Customers Say</h2>
           <div className="grid gap-6 md:grid-cols-3">
             {[
-              {
-                name: "Ravi Sharma",
-                feedback: "Amazing quality and fast delivery. I’ll definitely shop again!",
-              },
-              {
-                name: "Sneha Kapoor",
-                feedback: "Great customer service and awesome product variety!",
-              },
-              {
-                name: "Aditya Verma",
-                feedback: "User-friendly website and smooth checkout process!",
-              },
+              { name: "Ravi Sharma", feedback: "Amazing quality and fast delivery. I’ll definitely shop again!" },
+              { name: "Sneha Kapoor", feedback: "Great customer service and awesome product variety!" },
+              { name: "Aditya Verma", feedback: "User-friendly website and smooth checkout process!" },
             ].map((review, idx) => (
               <div key={idx} className="bg-gray-50 p-6 rounded-lg shadow border">
                 <p className="text-gray-600 italic mb-4">{review.feedback}</p>

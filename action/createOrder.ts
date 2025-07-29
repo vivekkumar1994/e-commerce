@@ -10,7 +10,7 @@ interface SaveOrderInput {
     phone?: string;
   };
   product: {
-    id: number;
+   id:  string;
     title: string;
     price: number;
     quantity: number;

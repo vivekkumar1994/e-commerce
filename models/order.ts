@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema, Model } from 'mongoose';
 
 export interface IProduct {
-  id: number;
+  id: string;  // <-- String here (Corrected)
   title: string;
   price: number;
   quantity: number;
@@ -37,23 +37,23 @@ const OrderSchema = new Schema<IOrder>(
     user: {
       name: { type: String, required: true },
       email: { type: String, required: true },
-      phone: String,
+      phone: { type: String },
     },
     product: {
-      id: { type: Number, required: true },
+      id: { type: String, required: true },  // <-- FIXED: id as String
       title: { type: String, required: true },
       price: { type: Number, required: true },
       quantity: { type: Number, required: true },
       totalPrice: { type: Number, required: true },
-      image: String,
+      image: { type: String },
     },
     paymentId: { type: String, required: true },
     shipping: {
-      name: String,
-      email: String,
-      phone: String,
-      address: String,
-      pincode: String,
+      name: { type: String },
+      email: { type: String },
+      phone: { type: String },
+      address: { type: String },
+      pincode: { type: String },
     },
     status: {
       type: String,

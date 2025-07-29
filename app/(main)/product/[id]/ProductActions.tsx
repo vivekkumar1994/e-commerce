@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Heart } from 'lucide-react';
 
 import useCartStore from '@/stores/cartStore';
 import { Button } from '@/components/ui/button';
@@ -76,29 +76,54 @@ export default function ProductActions({ product }: ProductActionsProps) {
     });
   };
 
-const handleGoToCheckout = () => {
-  if (user) {
-    const orderData = {
-      product: {
-        id,
-        title,
-        price,
-        quantity,
-        image,
-        totalPrice,
-      },
-      user,
-    };
-
-    try {
-      localStorage.setItem('lastOrder', JSON.stringify(orderData));
-    } catch (error) {
-      console.error('Error saving checkout data:', error);
+  const handleAddToWishlist = () => {
+    if (!id || !title || !image) {
+      toast.error('Product information missing');
+      return;
     }
-  }
 
-  router.push('/checkout');
-};
+    const wishlistItem = { id, name: title, price, image };
+    const existing = localStorage.getItem('wishlist') || '[]';
+    const wishlist = JSON.parse(existing);
+
+    const exists = wishlist.some((item: { id: number }) => item.id === id);
+
+    if (exists) {
+      toast.info('Already in Wishlist');
+      return;
+    }
+
+    wishlist.push(wishlistItem);
+    localStorage.setItem('wishlist', JSON.stringify(wishlist));
+
+    toast.success('Added to Wishlist', {
+      description: `${title} added to wishlist.`,
+    });
+  };
+
+  const handleGoToCheckout = () => {
+    if (user) {
+      const orderData = {
+        product: {
+          id,
+          title,
+          price,
+          quantity,
+          image,
+          totalPrice,
+        },
+        user,
+      };
+
+      try {
+        localStorage.setItem('lastOrder', JSON.stringify(orderData));
+      } catch (error) {
+        console.error('Error saving checkout data:', error);
+      }
+    }
+
+    router.push('/checkout');
+  };
 
   const increment = () => {
     if (quantity < 100) setQuantity((prev) => prev + 1);
@@ -145,7 +170,7 @@ const handleGoToCheckout = () => {
         </p>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex gap-4 mb-4">
         <Button
           onClick={handleAddToCart}
           className="flex-1 py-3 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white font-semibold"
@@ -159,6 +184,16 @@ const handleGoToCheckout = () => {
           Go to Checkout
         </Button>
       </div>
+
+      <div>
+        <Button
+          onClick={handleAddToWishlist}
+          className="w-full py-3 bg-pink-500 text-white font-semibold hover:bg-pink-600 flex items-center justify-center"
+        >
+          <Heart className="w-5 h-5 mr-2" /> Add to Wishlist
+        </Button>
+      </div>
     </div>
   );
 }
+

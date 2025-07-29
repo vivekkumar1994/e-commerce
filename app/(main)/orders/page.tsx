@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import {
   Package,
@@ -11,13 +12,15 @@ import {
   XSquareIcon,
   CalendarCheck,
   CreditCard,
+  Star,
 } from 'lucide-react';
 import { getOrders } from '@/action/getorder';
+import { addProductReview } from '@/action/product.actions'; // <-- Import this!
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 
 interface Product {
-  id: number;
+  id: string;
   title: string;
   price: number;
   quantity: number;
@@ -38,7 +41,6 @@ interface OrderItem {
   totalSum: string;
   products: Product[];
   shipping: ShippingDetails;
-  // You can add `paymentId` if available from the backend
 }
 
 interface IOrder {
@@ -55,23 +57,67 @@ const orderStatusIcons = {
 
 const getStaticDeliveryDate = (createdDate: string) => {
   const date = new Date(createdDate);
-  date.setDate(date.getDate() + 4); // static +4 days
+  date.setDate(date.getDate() + 4);
   return date.toISOString().split('T')[0];
+};
+
+const getCookie = (name: string): string | null => {
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? decodeURIComponent(match[2]) : null;
 };
 
 export default function MyOrdersPage() {
   const [orders, setOrders] = useState<IOrder>({ items: [], total: 0 });
   const [isLoading, setIsLoading] = useState(true);
+  const [reviewingProductId, setReviewingProductId] = useState<string | null>(null);
+  const [rating, setRating] = useState<number>(0);
+  const [comment, setComment] = useState<string>('');
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      const data = await getOrders();
-      setOrders(data ? { items: data.items.reverse(), total: data.total } : { items: [], total: 0 });
-      setIsLoading(false);
-    };
-    fetchOrders();
-  }, []);
+ useEffect(() => {
+  const fetchOrders = async () => {
+    const data = await getOrders();
+
+    if (data) {
+      const formattedOrders = data.items.map((order) => ({
+        ...order,
+        products: order.products.map((product) => ({
+          ...product,
+          id: product.id.toString(), // <-- THIS FIXES THE TYPE MISMATCH
+        })),
+      }));
+
+      setOrders({ items: formattedOrders, total: data.total });
+    } else {
+      setOrders({ items: [], total: 0 });
+    }
+
+    setIsLoading(false);
+  };
+
+  fetchOrders();
+}, []);
+
+ const handleSubmitReview = async (productId: string) => {
+  const userId = getCookie('id'); // Get userId from cookies/session/auth state
+
+  if (!userId) {
+    alert("Please log in to submit a review.");
+    return;
+  }
+
+
+  const result = await addProductReview({ productId, userId, rating, comment });
+  if (result.success) {
+    alert('Review submitted successfully');
+    setReviewingProductId(null);
+    setRating(0);
+    setComment('');
+  } else {
+    alert(result.message);
+  }
+};
+
 
   return (
     <div className="min-h-screen p-6 sm:p-10 bg-gradient-to-br from-purple-50 to-pink-50">
@@ -101,7 +147,6 @@ export default function MyOrdersPage() {
                 className="bg-white rounded-xl border shadow-lg hover:shadow-xl transition-shadow duration-300"
               >
                 <div className="p-6 space-y-4">
-                  {/* Order Header */}
                   <div className="flex justify-between items-center">
                     <h2 className="text-xl font-bold text-purple-700">Order #{order.id}</h2>
                     <Badge
@@ -120,17 +165,14 @@ export default function MyOrdersPage() {
                     </Badge>
                   </div>
 
-                  {/* Order Info */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600">
                     <p>
                       <CalendarCheck className="inline w-4 h-4 mr-1" />
-                      <strong>Order Date:</strong>{' '}
-                      {order.createdDate?.split('T')[0] || 'N/A'}
+                      <strong>Order Date:</strong> {order.createdDate?.split('T')[0] || 'N/A'}
                     </p>
                     <p>
                       <CalendarCheck className="inline w-4 h-4 mr-1" />
-                      <strong>Delivery Date:</strong>{' '}
-                      {getStaticDeliveryDate(order.createdDate)}
+                      <strong>Delivery Date:</strong> {getStaticDeliveryDate(order.createdDate)}
                     </p>
                     <p>
                       <CreditCard className="inline w-4 h-4 mr-1" />
@@ -141,45 +183,69 @@ export default function MyOrdersPage() {
                     </p>
                   </div>
 
-                  {/* Products */}
                   <div className="border-t pt-4 space-y-4">
                     {order.products.map((item) => (
                       <div
                         key={item.id}
-                        className="flex justify-between items-center border rounded-md px-4 py-2 bg-gray-50 hover:bg-white transition"
+                        className="flex flex-col sm:flex-row sm:justify-between sm:items-center border rounded-md px-4 py-2 bg-gray-50 hover:bg-white transition"
                       >
                         <div>
                           <h3 className="font-medium text-gray-800">{item.title}</h3>
                           <p className="text-xs text-gray-500">Quantity: {item.quantity}</p>
+                          <p className="text-sm font-semibold text-purple-600">₹{item.price.toFixed(2)}</p>
                         </div>
-                        <span className="font-semibold text-purple-600">
-                          ₹{item.price.toFixed(2)}
-                        </span>
+                        <div className="mt-2 sm:mt-0">
+                          {reviewingProductId === item.id ? (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <Star
+                                    key={star}
+                                    className={`w-5 h-5 cursor-pointer ${
+                                      star <= rating ? 'text-yellow-400' : 'text-gray-300'
+                                    }`}
+                                    onClick={() => setRating(star)}
+                                  />
+                                ))}
+                              </div>
+                              <Textarea
+                                placeholder="Write your feedback..."
+                                value={comment}
+                                onChange={(e) => setComment(e.target.value)}
+                              />
+                              <div className="flex gap-2">
+                                <Button
+                                  onClick={() => handleSubmitReview(item.id)}
+                                  disabled={rating === 0 || comment.trim() === ''}
+                                >
+                                  Submit Review
+                                </Button>
+                                <Button
+                                  variant="secondary"
+                                  onClick={() => setReviewingProductId(null)}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <Button size="sm" onClick={() => setReviewingProductId(item.id)}>
+                              Give Review
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
 
-                  {/* Shipping Details */}
                   <div className="mt-6 border-t pt-4">
-                    <h4 className="text-lg font-semibold text-purple-700 mb-2">
-                      Shipping Details
-                    </h4>
+                    <h4 className="text-lg font-semibold text-purple-700 mb-2">Shipping Details</h4>
                     <div className="grid sm:grid-cols-2 gap-2 text-sm text-gray-600">
-                      <p>
-                        <strong>Name:</strong> {order.shipping.name}
-                      </p>
-                      <p>
-                        <strong>Email:</strong> {order.shipping.email}
-                      </p>
-                      <p>
-                        <strong>Phone:</strong> {order.shipping.phone}
-                      </p>
-                      <p>
-                        <strong>Pincode:</strong> {order.shipping.pincode}
-                      </p>
-                      <p className="sm:col-span-2">
-                        <strong>Address:</strong> {order.shipping.address}
-                      </p>
+                      <p><strong>Name:</strong> {order.shipping.name}</p>
+                      <p><strong>Email:</strong> {order.shipping.email}</p>
+                      <p><strong>Phone:</strong> {order.shipping.phone}</p>
+                      <p><strong>Pincode:</strong> {order.shipping.pincode}</p>
+                      <p className="sm:col-span-2"><strong>Address:</strong> {order.shipping.address}</p>
                     </div>
                   </div>
                 </div>

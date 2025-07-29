@@ -45,3 +45,10 @@ export const getOrders = async () => {
     return [];
   }
 };
+
+
+export const updateOrderStatus = async (orderId: string, status: string) => {
+  await connectToDB();
+  await Order.findByIdAndUpdate(orderId, { status });
+  return { success: true };
+};

@@ -97,49 +97,45 @@ export default function AdminSidebar() {
           </button>
         </div>
 
-        <div className="p-6 flex flex-col justify-between h-full overflow-y-auto">
+        <div className="flex flex-col h-full">
           {/* Top - User Info */}
-          <div>
-            <div className="flex items-center gap-4 mb-4">
-              {user?.avatar ? (
-                <Image
-                  src={user.avatar}
-                  alt="Avatar"
-                  className="w-12 h-12 rounded-full border-2 border-white shadow"
-                  height={100}
-                  width={100}
-                />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center text-lg font-semibold shadow">
-                  {user?.name?.charAt(0) || "A"}
-                </div>
-              )}
-              <div>
-                <h2 className="text-lg font-semibold">{user?.name || "Admin"}</h2>
-                <p className="text-sm text-gray-400 capitalize">
-                  {user?.role || "admin"}
-                </p>
+          <div className="p-6 flex items-center gap-4 border-b border-gray-700">
+            {user?.avatar ? (
+              <Image
+                src={user.avatar}
+                alt="Avatar"
+                className="w-12 h-12 rounded-full border-2 border-white shadow"
+                height={100}
+                width={100}
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center text-lg font-semibold shadow">
+                {user?.name?.charAt(0) || "A"}
               </div>
+            )}
+            <div>
+              <h2 className="text-lg font-semibold">{user?.name || "Admin"}</h2>
+              <p className="text-sm text-gray-400 capitalize">{user?.role || "admin"}</p>
             </div>
+          </div>
 
-            {/* Buttons under Avatar */}
-            <div className="space-y-2 mb-6">
-              {user?.role === "admin" && (
-                <button
-                  onClick={() => alert("Open create user modal")}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-500 hover:from-blue-500 hover:to-indigo-400 text-white py-2 px-4 rounded-lg font-semibold shadow transition flex items-center justify-center gap-2"
-                >
-                  <Plus size={18} /> Create User
-                </button>
-              )}
-
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            {user?.role === "admin" && (
               <button
-                onClick={handleLogout}
-                className="w-full bg-gradient-to-r from-red-600 to-pink-500 hover:from-red-500 hover:to-pink-400 text-white py-2 px-4 rounded-lg font-semibold shadow transition flex items-center justify-center gap-2"
+                onClick={() => alert("Open create user modal")}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-500 hover:from-blue-500 hover:to-indigo-400 text-white py-2 px-4 rounded-lg font-semibold shadow transition flex items-center justify-center gap-2"
               >
-                <LogOut size={18} /> Logout
+                <Plus size={18} /> Create User
               </button>
-            </div>
+            )}
+
+            <button
+              onClick={handleLogout}
+              className="w-full bg-gradient-to-r from-red-600 to-pink-500 hover:from-red-500 hover:to-pink-400 text-white py-2 px-4 rounded-lg font-semibold shadow transition flex items-center justify-center gap-2"
+            >
+              <LogOut size={18} /> Logout
+            </button>
 
             {/* Navigation */}
             <nav className="space-y-2 text-sm font-medium">

@@ -27,7 +27,6 @@ interface IUserSession {
   avatar?: string;
 }
 
-// Decode cookie values
 function getCookieValue(name: string): string | undefined {
   const cookies = document.cookie.split("; ");
   const cookie = cookies.find((c) => c.startsWith(`${name}=`));
@@ -50,7 +49,12 @@ export default function Navbar() {
     const avatar = getCookieValue("avatar");
 
     if (email && name && role) {
-      setUser({ email, name, role, avatar });
+      setUser({
+        email,
+        name,
+        role: role.toLowerCase(), // ✅ Normalize role
+        avatar,
+      });
     }
 
     setIsLoading(false);
@@ -67,9 +71,7 @@ export default function Navbar() {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleLogout = async () => {
@@ -87,7 +89,7 @@ export default function Navbar() {
     }
   };
 
-  const showAvatar = user && (user.role === "user" || user.role === "admin");
+  const showAvatar = user && ["user", "admin", "seller"].includes(user.role);
 
   return (
     <nav>
@@ -97,7 +99,7 @@ export default function Navbar() {
             href="/"
             className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 bg-clip-text text-transparent"
           >
-            Ujjwal com
+            RoshanShop
           </Link>
 
           <div className="hidden md:flex items-center space-x-4">
@@ -106,20 +108,20 @@ export default function Navbar() {
                 type="text"
                 placeholder="Search products..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => setSearchQuery(e.target.value)}  
                 className="bg-gray-100 border-gray-400 min-w-48"
               />
             </form>
 
-            {user?.role === "seller" && (
+           
               <Link href="/seller?type=login">
                 <Button variant="ghost" className="text-purple-600 hover:text-purple-800">
                   Seller Dashboard
                 </Button>
               </Link>
-            )}
+          
 
-            {user?.role === "user" && (
+         
               <Link href="/cart">
                 <Button size="icon" className="relative" variant="ghost">
                   <ShoppingCart className="h-5 w-5 text-gray-600 hover:text-purple-500" />
@@ -130,7 +132,7 @@ export default function Navbar() {
                   )}
                 </Button>
               </Link>
-            )}
+            
 
             {isLoading ? (
               <Avatar className="h-8 w-8">
@@ -231,7 +233,7 @@ export default function Navbar() {
 
           {user?.role === "seller" && (
             <Link
-              href="/seller?type=login"
+              href="/seller"
               className="block text-gray-500 hover:text-white hover:bg-purple-500 p-2 rounded"
             >
               Seller Dashboard
