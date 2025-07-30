@@ -5,7 +5,7 @@ import { connectToDB } from '@/lib/db';
 import { Order, IOrder } from '@/models/order';
 
 interface FormattedProduct {
-  id: number;
+  id: string;  // Changed to string
   title: string;
   price: number;
   quantity: number;
@@ -39,27 +39,33 @@ export async function getOrders(): Promise<OrdersResponse> {
 
     const orders: IOrder[] = await Order.find().sort({ createdAt: -1 });
 
-    const formattedOrders: FormattedOrder[] = orders.map((order) => ({
-      id: (order._id as mongoose.Types.ObjectId).toString(),
-      createdDate: order.createdAt.toISOString(),
-      statusIdentifier: order.status,
-      totalSum: order.product.totalPrice.toFixed(2),
-      products: [
-        {
-          id: order.product.id,
-          title: order.product.title,
-          price: order.product.price,
-          quantity: order.product.quantity,
+    const formattedOrders: FormattedOrder[] = orders.map((order) => {
+      const product = order.product;  // Single product object
+
+      const formattedProduct: FormattedProduct = {
+        id: product.id.toString(),  // Ensure string type
+        title: product.title,
+        price: product.price,
+        quantity: product.quantity,
+      };
+
+      const totalSum = (product.price * product.quantity).toFixed(2);
+
+      return {
+        id: (order._id as mongoose.Types.ObjectId).toString(),
+        createdDate: order.createdAt.toISOString(),
+        statusIdentifier: order.status,
+        totalSum,
+        products: [formattedProduct],  // Wrap in array
+        shipping: {
+          name: order.shipping.name,
+          email: order.shipping.email,
+          phone: order.shipping.phone,
+          address: order.shipping.address,
+          pincode: order.shipping.pincode,
         },
-      ],
-      shipping: {
-        name: order.shipping.name,
-        email: order.shipping.email,
-        phone: order.shipping.phone,
-        address: order.shipping.address,
-        pincode: order.shipping.pincode,
-      },
-    }));
+      };
+    });
 
     return {
       items: formattedOrders,
