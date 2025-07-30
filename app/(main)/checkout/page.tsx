@@ -16,7 +16,7 @@ interface IUser {
 }
 
 interface IProductOrder {
-  id: number;
+  id: string;  // <-- CHANGED to string
   title: string;
   price: number;
   quantity: number;
@@ -86,6 +86,8 @@ export default function CheckoutPage() {
       try {
         const parsed = JSON.parse(stored);
         if (parsed.product && parsed.user) {
+          // Ensure product.id is string (safe-guard)
+          parsed.product.id = parsed.product.id.toString();
           setLastOrder(parsed);
           setShippingName(parsed.user.name);
           setShippingEmail(parsed.user.email);
@@ -151,7 +153,7 @@ export default function CheckoutPage() {
 
           const result = await saveOrderToDB({
             user,
-            product,
+            product,  // <-- product.id is string now
             paymentId: rzpResponse.razorpay_payment_id,
             shippingName,
             shippingEmail,

@@ -2,7 +2,7 @@ import React from 'react';
 import ProductCard from './productCard';
 import { IProduct } from '@/types/product';
 
-export type ProductInput = {
+type ProductInput = {
   id: string;
   title?: string;
   description?: string;
@@ -22,10 +22,10 @@ export type ProductInput = {
 interface ProductCatalogProps {
   title: string;
   products: ProductInput[];
-  onAddToWishlist: (product: ProductInput) => void;
+  onAddToWishlist?: (productId: string) => void; // <-- Optional prop
 }
 
-const ProductCatalog: React.FC<ProductCatalogProps> = ({ title, products, onAddToWishlist }) => {
+const ProductCatalog: React.FC<ProductCatalogProps> = ({ title, products }) => {
   return (
     <section className="mb-12">
       <h2 className="text-3xl font-bold mb-8 bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 bg-clip-text text-transparent">
@@ -72,13 +72,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ title, products, onAddT
             },
           };
 
-          return (
-            <ProductCard
-              key={product.id}
-              product={transformedProduct}
-              onAddToWishlist={() => onAddToWishlist(product)}
-            />
-          );
+          return <ProductCard key={product.id} product={transformedProduct} />;
         })}
       </div>
     </section>
