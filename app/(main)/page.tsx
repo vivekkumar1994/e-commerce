@@ -122,13 +122,31 @@ export default function HomePage() {
           </Swiper>
         </section>
 
-        {/* Product Catalog */}
+        {/* Product Carousels by Category */}
         {categories.map((cat) => (
-          <ProductCatalog
-            key={cat.name}
-            title={cat.name}
-            products={categoryProducts[cat.name] || []}
-          />
+          <section key={cat.name}>
+            <h2 className="text-2xl font-bold mb-6">{cat.name}</h2>
+            <Swiper
+              spaceBetween={20}
+              slidesPerView={2}
+              navigation
+              breakpoints={{
+                640: { slidesPerView: 2 },
+                768: { slidesPerView: 3 },
+                1024: { slidesPerView: 4 },
+              }}
+              modules={[Navigation]}
+            >
+              {categoryProducts[cat.name]?.map((product) => (
+                <SwiperSlide key={product.id}>
+                  <ProductCatalog
+                    title=""
+                    products={[product]}
+                  />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </section>
         ))}
 
         {/* Testimonials */}

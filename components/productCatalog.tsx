@@ -1,6 +1,11 @@
 import React from 'react';
 import ProductCard from './productCard';
 import { IProduct } from '@/types/product';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/autoplay';
+import { Navigation, Autoplay } from 'swiper/modules';
 
 type ProductInput = {
   id: string;
@@ -22,7 +27,7 @@ type ProductInput = {
 interface ProductCatalogProps {
   title: string;
   products: ProductInput[];
-  onAddToWishlist?: (productId: string) => void; // <-- Optional prop
+  onAddToWishlist?: (productId: string) => void;
 }
 
 const ProductCatalog: React.FC<ProductCatalogProps> = ({ title, products }) => {
@@ -32,7 +37,19 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ title, products }) => {
         {title}
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <Swiper
+        spaceBetween={20}
+        slidesPerView={1.5}
+        navigation
+        autoplay={{ delay: 3000, disableOnInteraction: false }}
+        loop
+        breakpoints={{
+          640: { slidesPerView: 2.5 },
+          768: { slidesPerView: 3.5 },
+          1024: { slidesPerView: 4.5 },
+        }}
+        modules={[Navigation, Autoplay]}
+      >
         {products?.map((product) => {
           const price =
             typeof product.price === 'string' ? parseFloat(product.price) : product.price;
@@ -72,9 +89,13 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ title, products }) => {
             },
           };
 
-          return <ProductCard key={product.id} product={transformedProduct} />;
+          return (
+            <SwiperSlide key={product.id} className="!w-[280px]">
+              <ProductCard product={transformedProduct} />
+            </SwiperSlide>
+          );
         })}
-      </div>
+      </Swiper>
     </section>
   );
 };
