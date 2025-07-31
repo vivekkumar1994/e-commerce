@@ -33,6 +33,7 @@ const categories = [
 
 export default function HomePage() {
   const [categoryProducts, setCategoryProducts] = useState<Record<string, ProductInput[]>>({});
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -50,6 +51,7 @@ export default function HomePage() {
       }
 
       setCategoryProducts(mapped);
+      setIsLoading(false);  // <-- Loading done
     };
 
     loadProducts();
@@ -72,6 +74,9 @@ export default function HomePage() {
                 className="absolute inset-0 w-full h-full object-cover opacity-20 z-0"
                 height={400}
                 width={1200}
+                priority
+                placeholder="blur"
+                blurDataURL="/blur-placeholder.png"
               />
               <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-6">
                 <motion.h1
@@ -122,41 +127,34 @@ export default function HomePage() {
           </Swiper>
         </section>
 
-        {/* Product Carousels by Category */}
+        {/* Product Catalog with Skeleton Loader */}
         {categories.map((cat) => (
-          <section key={cat.name}>
-            <h2 className="text-2xl font-bold mb-6">{cat.name}</h2>
-            <Swiper
-              spaceBetween={20}
-              slidesPerView={2}
-              navigation
-              breakpoints={{
-                640: { slidesPerView: 2 },
-                768: { slidesPerView: 3 },
-                1024: { slidesPerView: 4 },
-              }}
-              modules={[Navigation]}
-            >
-              {categoryProducts[cat.name]?.map((product) => (
-                <SwiperSlide key={product.id}>
-                  <ProductCatalog
-                    title=""
-                    products={[product]}
-                  />
-                </SwiperSlide>
-              ))}
-            </Swiper>
-          </section>
+          <div key={cat.name}>
+            {isLoading ? (
+              <div className="space-y-4">
+                <div className="h-6 w-48 bg-gray-200 animate-pulse rounded" />
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  {[...Array(4)].map((_, idx) => (
+                    <div key={idx} className="h-48 bg-gray-200 animate-pulse rounded-lg" />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <ProductCatalog
+                title={cat.name}
+                products={categoryProducts[cat.name] || []}
+              />
+            )}
+          </div>
         ))}
 
         {/* Testimonials */}
         <section className="text-center">
           <h2 className="text-2xl font-bold mb-8">What Our Customers Say</h2>
           <div className="grid gap-6 md:grid-cols-3">
-            {[
-              { name: "Ravi Sharma", feedback: "Amazing quality and fast delivery. I’ll definitely shop again!" },
+            {[{ name: "Ravi Sharma", feedback: "Amazing quality and fast delivery. I’ll definitely shop again!" },
               { name: "Sneha Kapoor", feedback: "Great customer service and awesome product variety!" },
-              { name: "Aditya Verma", feedback: "User-friendly website and smooth checkout process!" },
+              { name: "Aditya Verma", feedback: "User-friendly website and smooth checkout process!" }
             ].map((review, idx) => (
               <div key={idx} className="bg-gray-50 p-6 rounded-lg shadow border">
                 <p className="text-gray-600 italic mb-4">{review.feedback}</p>

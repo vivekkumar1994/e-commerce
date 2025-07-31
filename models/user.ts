@@ -15,7 +15,7 @@ export interface IUser extends Document {
   identifier: string;
   avatar:string;
   formData: IFormData[];
-  role: 'user' | 'admin' | 'seller';
+  role: 'builder' | 'admin' | 'agents';
   comparePassword: (candidatePassword: string) => Promise<boolean>;
    createdAt: Date;  // ✅ Add this
   updatedAt: Date;
