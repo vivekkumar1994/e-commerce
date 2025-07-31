@@ -99,7 +99,7 @@ export default function Navbar() {
             href="/"
             className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 bg-clip-text text-transparent"
           >
-            RoshanShop
+            Ujjwal Store
           </Link>
 
           <div className="hidden md:flex items-center space-x-4">
