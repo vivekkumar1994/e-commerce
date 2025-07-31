@@ -101,32 +101,83 @@ export const getAllProducts = async () => {
 };
 
 // ✅ Public: Get Products by Category (Client uses this)
-export const getProductsByCategory = async (category: string): Promise<ProductInput[]> => {
+
+
+export const getProductsByCategory = async (
+  category: string,
+  limit: number = 10,
+  skip: number = 0
+): Promise<ProductInput[]> => {
   await connectToDB();
 
-  const products = await Product.find({ category }).sort({ createdAt: -1 }).lean();
+  const products = await Product.aggregate([
+    // Match on indexed field
+    { $match: { category } },
 
-  return products.map((product) => {
-    const id = product._id?.toString?.() || "unknown";
+    // Sort on indexed field (createdAt)
+    { $sort: { createdAt: -1 } },
 
-    const title = product.title || product.attributeValues?.p_title?.value || "Untitled";
+    // Skip for pagination
+    { $skip: skip },
 
-    const description = product.description
-      ?? (Array.isArray(product.attributeValues?.p_description?.value)
-        ? product.attributeValues.p_description.value.join(", ")
-        : typeof product.attributeValues?.p_description?.value === "string"
-          ? product.attributeValues.p_description.value
-          : "");
+    // Limit result to small batch (FAST)
+    { $limit: limit },
 
-    const image = product.image || product.attributeValues?.p_image?.value?.downloadLink || "";
+    // Project only necessary fields
+    {
+      $project: {
+        _id: 0,
+        id: { $toString: "$_id" },
+        title: {
+          $ifNull: [
+            "$title",
+            { $ifNull: ["$attributeValues.p_title.value", "Untitled"] }
+          ]
+        },
+        description: {
+          $cond: [
+            { $isArray: "$attributeValues.p_description.value" },
+            {
+              $reduce: {
+                input: "$attributeValues.p_description.value",
+                initialValue: "",
+                in: {
+                  $concat: [
+                    { $cond: [{ $eq: ["$$value", ""] }, "", { $concat: ["$$value", ", "] }] },
+                    "$$this"
+                  ]
+                }
+              }
+            },
+            {
+              $ifNull: ["$attributeValues.p_description.value", ""]
+            }
+          ]
+        },
+        image: {
+          $ifNull: [
+            "$image",
+            { $ifNull: ["$attributeValues.p_image.value.downloadLink", ""] }
+          ]
+        },
+        price: {
+          $cond: {
+            if: { $isNumber: "$price" },
+            then: "$price",
+            else: {
+              $convert: { input: "$price", to: "double", onError: 0, onNull: 0 }
+            }
+          }
+        }
+      }
+    }
+  ]);
 
-    const price = typeof product.price === "number"
-      ? product.price
-      : Number(product.price) || 0;
-
-    return { id, title, description, image, price };
-  });
+  return products as ProductInput[];
 };
+
+
+
 
 // ✅ Admin: Get Products of Specific Seller
 export const getProductsBySellerId = async (sellerId: string) => {

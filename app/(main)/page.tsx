@@ -1,17 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import ProductCatalog from "@/components/productCatalog";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { getProductsByCategory, ProductInput } from "@/action/product.actions";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
-import { Navigation } from 'swiper/modules';
+import LazyCategorySection from "@/components/LazyCategorySection";
 
 const categories = [
   { name: "Electronics", key: "electronics" },
@@ -33,32 +33,17 @@ const categories = [
 
 export default function HomePage() {
   const [categoryProducts, setCategoryProducts] = useState<Record<string, ProductInput[]>>({});
-  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-
-  useEffect(() => {
-    const loadProducts = async () => {
-      const results = await Promise.all(
-        categories.map(async (cat) => {
-          const products = await getProductsByCategory(cat.key);
-          return { key: cat.name, products };
-        })
-      );
-
-      const mapped: Record<string, ProductInput[]> = {};
-      for (const { key, products } of results) {
-        mapped[key] = products;
-      }
-
-      setCategoryProducts(mapped);
-      setIsLoading(false);  // <-- Loading done
-    };
-
-    loadProducts();
-  }, []);
 
   const handleCategoryClick = (slug: string) => {
     router.push(`/category/${slug}`);
+  };
+
+  const loadCategoryProducts = async (catKey: string, catName: string) => {
+    if (!categoryProducts[catName]) {
+      const products = await getProductsByCategory(catKey);
+      setCategoryProducts((prev) => ({ ...prev, [catName]: products }));
+    }
   };
 
   return (
@@ -127,25 +112,15 @@ export default function HomePage() {
           </Swiper>
         </section>
 
-        {/* Product Catalog with Skeleton Loader */}
+        {/* Lazy Load Product Sections */}
         {categories.map((cat) => (
-          <div key={cat.name}>
-            {isLoading ? (
-              <div className="space-y-4">
-                <div className="h-6 w-48 bg-gray-200 animate-pulse rounded" />
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {[...Array(4)].map((_, idx) => (
-                    <div key={idx} className="h-48 bg-gray-200 animate-pulse rounded-lg" />
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <ProductCatalog
-                title={cat.name}
-                products={categoryProducts[cat.name] || []}
-              />
-            )}
-          </div>
+          <LazyCategorySection
+            key={cat.key}
+            catKey={cat.key}
+            catName={cat.name}
+            products={categoryProducts[cat.name]}
+            loadCategoryProducts={loadCategoryProducts}
+          />
         ))}
 
         {/* Testimonials */}
